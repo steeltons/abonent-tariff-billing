@@ -39,14 +39,14 @@ public class BillFileParser {
 
     private List<CallBillInformation> parseCallBills(Scanner scanner) throws ParseException, EOFException {
         List<CallBillInformation> callBillInformationList = new ArrayList<>();
-        String scannerLine = "";
+        String scannerLine = scanner.nextLine();
         while (!scannerLine.startsWith("===")) {
+            CallBillInformation billInformation = CallBillInformation.parseFromLine(scannerLine);
+            callBillInformationList.add(billInformation);
             if(!scanner.hasNext()) {
                 throw new EOFException("Bill file EOF, but there is no total sum.");
             }
             scannerLine = scanner.nextLine();
-            CallBillInformation billInformation = CallBillInformation.parseFromLine(scannerLine);
-            callBillInformationList.add(billInformation);
         }
         return callBillInformationList;
     }

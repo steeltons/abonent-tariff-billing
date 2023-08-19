@@ -48,7 +48,7 @@ public class CdrPlusResourceCreator {
     private String writeHeader(Long phoneNumber, Tariff tariff) {
         String line = "";
         line += phoneNumber + "\n";
-        line += String.format("%d %f %d\n", tariff.getTariffCode(), tariff.getBaseCost(), tariff.getRegion().getRegionId());
+        line += String.format("%d %s %d\n", tariff.getTariffCode(), String.format("%.2f", tariff.getBaseCost()).replace(",", "."), tariff.getRegion().getRegionId());
         return line;
     }
 
@@ -56,8 +56,8 @@ public class CdrPlusResourceCreator {
         StringBuilder line = new StringBuilder();
         tariffCallOptionList.sort((tco1, tco2) -> Byte.compare(tco2.getCallPriority(), tco1.getCallPriority()));
         for(TariffCallOption callOption : tariffCallOptionList) {
-            line.append(String.format("- %d %f %d %f\n", callOption.getCallType(), callOption.getMinuteCost(),
-                    callOption.getMinuteBuffer(), callOption.getOptionPrice()));
+            line.append(String.format("- %d %s %d %s\n", callOption.getCallType(), String.format("%.2f", callOption.getMinuteCost()).replace(",", "."),
+                    callOption.getMinuteBuffer(), String.format("%.2f", callOption.getOptionPrice()).replace(",", ".")));
         }
         line.append("=============================\n");
         return line.toString();

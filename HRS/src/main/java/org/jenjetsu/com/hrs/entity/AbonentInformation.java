@@ -13,7 +13,6 @@ public class AbonentInformation {
 
     private Long phoneNumber;
     private Tariff tariff;
-    private List<TariffOption> tariffOptions;
-    private List<CallInformation> callInformations;
+    private List<HrsCallInformation> callInformations;
 }
 

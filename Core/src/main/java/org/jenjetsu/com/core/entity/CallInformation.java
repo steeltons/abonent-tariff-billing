@@ -23,7 +23,7 @@ public class CallInformation {
 
     public long getCallDurationInSeconds() {
         long callingTimeMillis = endCallingTime.getTime() - startCallingTime.getTime();
-        return (long) Math.ceil(callingTimeMillis / 1000);
+        return (long) Math.ceil(callingTimeMillis / 1000.0);
     }
 
     public static CallInformation parseFromLine(String line) throws ParseException, IllegalArgumentException {

@@ -35,7 +35,7 @@ public class AbonentBiller {
 
     public void billAbonents(List<AbonentBill> abonentBillList) {
         log.info("Start billing abonents.");
-        transactionTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);
+        transactionTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_DEFAULT);
         transactionTemplate.executeWithoutResult((status) -> {
             long blockedAbonents = 0l;
             try {
@@ -73,10 +73,10 @@ public class AbonentBiller {
         Date date = new Date(System.currentTimeMillis());
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         outputStream.write(("Billing time: " + format.format(date) + "\n").getBytes());
-        outputStream.write(String.format("Total billed numbers : %d\n").getBytes());
-        outputStream.write(String.format("Total blocked numbers : %d\n").getBytes());
-        outputStream.write(String.format("Total spoked seconds : %d\n").getBytes());
-        outputStream.write(String.format("Total obtained money: %f\n").getBytes());
+        outputStream.write(String.format("Total billed numbers : %d\n", abonentBillList.size()).getBytes());
+        outputStream.write(String.format("Total blocked numbers : %d\n", blockedAbonents).getBytes());
+//        outputStream.write(String.format("Total spoked seconds : %d\n").getBytes());
+//        outputStream.write(String.format("Total obtained money: %f\n").getBytes());
         format = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
         DateFormat finalFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
         return new ByteArrayResource(outputStream.toByteArray()) {

@@ -10,6 +10,11 @@ spring:
     bucket-name: trash
     secure: false
     url: http://localhost:9000
+  rabbitmq:
+    host: localhost
+    username: rmuser
+    password: rmpassword
+
 eureka:
   client:
     service-url:

@@ -2,18 +2,17 @@ package org.jenjetsu.com.hrs.broker;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jenjetsu.com.hrs.entity.AbonentBill;
+import org.jenjetsu.com.core.entity.AbonentBill;
+import org.jenjetsu.com.core.service.MinioService;
 import org.jenjetsu.com.hrs.entity.AbonentInformation;
 import org.jenjetsu.com.hrs.logic.BillFileCreator;
 import org.jenjetsu.com.hrs.logic.CallBiller;
-import org.jenjetsu.com.hrs.logic.CdrFileParser;
-import org.jenjetsu.com.hrs.service.MinioService;
+import org.jenjetsu.com.hrs.logic.CdrPlusFileParser;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,24 +23,20 @@ public class BrtListener {
 
     private final MinioService minioService;
     private final CallBiller callBiller;
+    private final BillFileCreator fileCreator;
+    private final CdrPlusFileParser cdrPlusFileParser;
+    private final BrtMessageSender messageSender;
 
-    @RabbitListener(queues = "bill-abonents")
-    public void receiveBrtCommand(String filename) {
-        //InputStream fileInputStream = minioService.getObjectStream(filename);
-        //List<AbonentInformation> abonentInformationList = CdrFileParser.parseCallInformationFromFile(fileInputStream);
-        List<AbonentInformation> abonentInformationList = new ArrayList<>();
-        abonentInformationList.add(new AbonentInformation());
+    @RabbitListener(queues = "brt-queue-listener")
+    public void handleCdrPlusFile(String filename) throws IOException{
+        Resource cdrPlusFile = minioService.getFile(filename, "trash");
+        List<AbonentInformation> abonentInformationList = cdrPlusFileParser.parseCdrPlusFile(cdrPlusFile);
         List<AbonentBill> abonentBillList = new ArrayList<>();
         for(AbonentInformation abonentInformation : abonentInformationList) {
             abonentBillList.add(callBiller.billAbonent(abonentInformation));
         }
-        Resource billFile = BillFileCreator.writeBillsToFile(abonentBillList);
-        try {
-            minioService.putObject(billFile.getFilename(), billFile.getInputStream());
-            log.info("Save file with name {}", billFile.getFilename());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        // возврат в BRT
+        Resource billFile = fileCreator.writeBillsToFile(abonentBillList);
+        minioService.putFile(billFile.getFilename(), "trash", billFile.getInputStream());
+        messageSender.sendBillFilenameToBrt(billFile.getFilename());
     }
 }
