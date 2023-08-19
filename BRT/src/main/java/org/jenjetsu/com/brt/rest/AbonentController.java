@@ -1,14 +1,13 @@
 package org.jenjetsu.com.brt.rest;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
+import org.jenjetsu.com.brt.async.BillingProcess;
 import org.jenjetsu.com.brt.dto.ChangeBalanceDto;
 import org.jenjetsu.com.brt.dto.ChangeTariffDto;
 import org.jenjetsu.com.brt.dto.RawAbonentDto;
 import org.jenjetsu.com.brt.entity.Abonent;
-import org.jenjetsu.com.brt.logic.AbonentCreator;
-import org.jenjetsu.com.brt.logic.AbonentInformationCollector;
-import org.jenjetsu.com.brt.logic.BalanceChanger;
-import org.jenjetsu.com.brt.logic.TariffChanger;
+import org.jenjetsu.com.brt.logic.*;
 import org.jenjetsu.com.brt.service.AbonentService;
 import org.jenjetsu.com.core.dto.PhoneNumberListDto;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +26,7 @@ public class AbonentController {
     private final AbonentCreator abonentCreator;
     private final AbonentInformationCollector informationCollector;
     private final AbonentService abonentService;
+    private final BillingProcess billingProcess;
 
     @PostMapping("/create")
     public ResponseEntity<?> createAbonent(@RequestBody RawAbonentDto abonentDto) {
@@ -58,5 +58,10 @@ public class AbonentController {
         List<Long> numbers = abonentService.getAllNotBannedAbonents().stream().map(Abonent::getPhoneNumber).collect(Collectors.toList());
         PhoneNumberListDto numberListDto = new PhoneNumberListDto(numbers);
         return ResponseEntity.ok(numberListDto);
+    }
+
+    @PatchMapping("/start-billing")
+    public ResponseEntity<?> startBilling(HttpServletRequest req) {
+        return billingProcess.joinToBillingProcess();
     }
 }

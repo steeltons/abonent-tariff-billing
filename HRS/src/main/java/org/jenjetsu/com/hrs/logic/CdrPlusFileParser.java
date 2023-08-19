@@ -6,16 +6,12 @@ import org.jenjetsu.com.hrs.entity.AbonentInformation;
 import org.jenjetsu.com.hrs.entity.HrsCallInformation;
 import org.jenjetsu.com.hrs.entity.Tariff;
 import org.jenjetsu.com.hrs.entity.TariffOption;
-import org.simpleframework.xml.util.ConcurrentCache;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.EOFException;
-import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
