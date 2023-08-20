@@ -1,38 +1,6 @@
-server:
-  port: 8100
-
 spring:
-  application:
-    name: jenjetsu-cdr
-    enable-auto-collect: false
+  config:
+    import: "configserver:"
   cloud:
-    loadbalancer:
-      ribbon:
-        enabled: false
-  rabbitmq:
-    host: localhost
-    username: rmuser
-    password: rmpassword
-  minio:
-    access-key: Rl0oO5YUFKMD32JrlQGP
-    secret-key: my5xxN1yL9NK61opuOyIvC9yHbIeUG2WCbDPZFQh
-    bucket-name: trash
-    secure: false
-    url: http://localhost:9000
-
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-
-phone-number-generator:
-  pattern: 79#########
-
-CallInfoCreator:
-  min-call-duration-seconds: 10
-  max-call-duration-seconds: 1800
-  min-call-date: "2023-01-01"
-  max-call-date: "2023-12-31"
-  min-phone-calls: 5
-  max-phone-calls: 15
+    config:
+      name: CDR,rabbitmq,minio

@@ -1,0 +1,7 @@
+spring:
+  minio:
+    access-key: Rl0oO5YUFKMD32JrlQGP
+    secret-key: my5xxN1yL9NK61opuOyIvC9yHbIeUG2WCbDPZFQh
+    bucket-name: trash
+    secure: false
+    url: http://localhost:9000

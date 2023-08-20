@@ -1,21 +1,6 @@
-server:
-  port: 8102
-
 spring:
-  application:
-    name: HRS
-  minio:
-    access-key: Rl0oO5YUFKMD32JrlQGP
-    secret-key: my5xxN1yL9NK61opuOyIvC9yHbIeUG2WCbDPZFQh
-    bucket-name: trash
-    secure: false
-    url: http://localhost:9000
-  rabbitmq:
-    host: localhost
-    username: rmuser
-    password: rmpassword
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
+  config:
+    import: "configserver:"
+  cloud:
+    config:
+      name: HRS,rabbitmq,minio
