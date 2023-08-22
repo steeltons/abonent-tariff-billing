@@ -4,20 +4,20 @@ server:
 spring:
   application:
     name: jenjetsu-cdr
-    enable-auto-collect: false
+    enable-auto-collect: ${SPRING_APPLICATION_ENABLE-AUTO-COLLECT}
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE}
 
 phone-number-generator:
-  pattern: 79#########
+  pattern: ${PHONE-NUMBER-GENERATOR_PATTERN}
 
 CallInfoCreator:
-  min-call-duration-seconds: 10
-  max-call-duration-seconds: 1800
-  min-call-date: "2023-01-01"
-  max-call-date: "2023-12-31"
-  min-phone-calls: 5
-  max-phone-calls: 15
+  min-call-duration-seconds: ${CALLINFOCREATOR_MIN-CALL-DURATION-SECONDS}
+  max-call-duration-seconds: ${CALLINFOCREATOR_MAX-CALL-DURATION-SECONDS}
+  min-call-date: ${CALLINFOCREATOR_MIN-CALL-DATE}
+  max-call-date: ${CALLINFOCREATOR_MAX-CALL-DATE}
+  min-phone-calls: ${CALLINFOCREATOR_MIN-PHONE-CALLS}
+  max-phone-calls: ${CALLINFOCREATOR_MAX-PHONE-CALLS}

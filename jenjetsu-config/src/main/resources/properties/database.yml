@@ -1,6 +1,6 @@
 spring:
   datasource:
-    driver-class-name: "org.postgresql.Driver"
-    url: "jdbc:postgresql://localhost:5001/brt_database?characterEncoding=utf8"
-    username: Stey
-    password: 1228
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5001/brt_database?characterEncoding=utf8
+    username: '{cipher}c36b36435894a8be379b64ae8281312793436b7b8ee87ccab6011a051c9933de'
+    password: '{cipher}19561f0236519d4f47f63e2274e37760715afdb41d9e0c6ca149c37c8e045d3f'

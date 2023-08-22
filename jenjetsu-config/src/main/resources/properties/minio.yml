@@ -1,7 +1,6 @@
 spring:
   minio:
-    access-key: Rl0oO5YUFKMD32JrlQGP
-    secret-key: my5xxN1yL9NK61opuOyIvC9yHbIeUG2WCbDPZFQh
-    bucket-name: trash
-    secure: false
     url: http://localhost:9000
+    access-key: '{cipher}d030a6c10f6596f91ecb6e956c7160b18778c3ff2ac551ceb4c143e8d2dd07d1684eaf9863feb9497ab1a759aaac17a9'
+    secret-key: '{cipher}a0340d1db11e8bd73dcaa2892105e0c74d41b7552f8093ee9aeb859609e6b2870cd38745a0f1631f4ef6e72ad531a32fa92e54873a38915946472b10f2c15ed6'
+    secure: false

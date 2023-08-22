@@ -3,4 +3,4 @@ spring:
     import: "configserver:"
   cloud:
     config:
-      name: CDR,rabbitmq,minio
+      name: CDR,rabbitmq,minio,eureka-client

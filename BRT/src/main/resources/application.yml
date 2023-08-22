@@ -1,7 +1,8 @@
 spring:
+  application:
+    name: BRT
   config:
     import: "configserver:"
   cloud:
     config:
-      name: BRT,database,rabbitmq,minio
-
+      name: BRT,database,minio,rabbitmq,eureka-client

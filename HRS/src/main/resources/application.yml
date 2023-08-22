@@ -3,4 +3,4 @@ spring:
     import: "configserver:"
   cloud:
     config:
-      name: HRS,rabbitmq,minio
+      name: HRS,rabbitmq,minio,eureka-client
