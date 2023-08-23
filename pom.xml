@@ -8,7 +8,6 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>jenjetsu-eureka-server</module>
-        <module>api-gateway</module>
         <module>CDR</module>
         <module>BRT</module>
         <module>HRS</module>
