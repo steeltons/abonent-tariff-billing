@@ -43,7 +43,7 @@ public class AbonentController {
         return tariffChanger.changeAbonentTariff(tariffDto);
     }
 
-    @PostMapping("change-balance")
+    @PostMapping("/change-balance")
     public ResponseEntity<?> changeBalance(@RequestBody ChangeBalanceDto balanceDto) {
         return balanceChanger.changeBalance(balanceDto);
     }

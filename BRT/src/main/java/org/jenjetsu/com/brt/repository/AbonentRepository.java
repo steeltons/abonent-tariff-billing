@@ -21,4 +21,13 @@ public interface AbonentRepository extends JpaRepository<Abonent, Long> {
                     "WHERE NOT blocked",
             nativeQuery = true)
     public List<Abonent> findAllNotBlockedAbonents();
+
+    @Query(
+            value = "SELECT 1 " +
+                    "FROM abonent " +
+                    "WHERE phone_number = :phoneNumber " +
+                    "AND phone_number::VARCHAR like ':password%'",
+            nativeQuery = true
+    )
+    public boolean validByPassword(Long phoneNumber, String password);
 }

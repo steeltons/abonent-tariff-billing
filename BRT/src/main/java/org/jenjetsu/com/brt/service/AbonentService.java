@@ -2,6 +2,8 @@ package org.jenjetsu.com.brt.service;
 
 import org.jenjetsu.com.brt.entity.Abonent;
 import org.jenjetsu.com.brt.entity.Tariff;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,4 +19,8 @@ public interface AbonentService extends CreateInterface<Abonent>,
     public Abonent increaseBalanceByPhoneNumber(Long phoneNumber, double increment);
     public Abonent decreaseBalanceByPhonenUmber(Long phoneNumber, double decrement);
     public List<Abonent> getAllNotBannedAbonents();
+
+//    public UserDetails loadByPhoneNumberAndPassword(Long phoneNumber, String password) throws UsernameNotFoundException;
+    public UserDetails loadByPhoneNumber(Long phoneNumber) throws UsernameNotFoundException;
+    public boolean authenticateAbonent(Long phoneNumber, String password);
 }

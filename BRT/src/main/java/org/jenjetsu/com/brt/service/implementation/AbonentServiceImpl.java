@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import org.jenjetsu.com.brt.entity.Abonent;
 import org.jenjetsu.com.brt.repository.AbonentRepository;
 import org.jenjetsu.com.brt.service.AbonentService;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -126,6 +129,21 @@ public class AbonentServiceImpl implements AbonentService {
         return abonentRep.findAllNotBlockedAbonents();
     }
 
+    @Override
+    public boolean authenticateAbonent(Long phoneNumber, String password) {
+        return abonentRep.validByPassword(phoneNumber, password);
+    }
+
+    public UserDetails loadByPhoneNumber(Long phoneNumber) throws UsernameNotFoundException {
+        if(isExistByPhoneNumber(phoneNumber)) {
+            return User.builder()
+                    .username(String.format("+%d", phoneNumber))
+                    .password("nopassword")
+                    .authorities("ABONENT")
+                    .build();
+        }
+        throw new UsernameNotFoundException(String.format("Abonent with number %d not found", phoneNumber));
+    }
 
     @Override
     public Abonent updateById(Abonent newObject, Long aLong) {

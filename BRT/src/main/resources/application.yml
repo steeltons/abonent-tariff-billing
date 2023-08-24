@@ -6,3 +6,12 @@ spring:
   cloud:
     config:
       name: BRT,database,minio,rabbitmq,eureka-client
+
+jwt:
+  access-token-key: '{"kty":"oct","k":"hi7S5RX5ZRZooHA0RKGctZ-KtR9FoESgCnH-3BNg5XI"}'
+  access-token-days: 15
+  refresh-token-key: '{"kty":"oct","k":"956PBFst1FguLr5irJD-aQ"}'
+  refresh-token-minutes: 15
+  jws-algorithm: HS256
+  jwe-algorithm: dir
+  jwe-encryption-method: A128GCM
