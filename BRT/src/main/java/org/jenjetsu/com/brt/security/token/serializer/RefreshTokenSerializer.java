@@ -1,19 +1,14 @@
-package org.jenjetsu.com.brt.security;
+package org.jenjetsu.com.brt.security.token.serializer;
 
 import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.DirectEncrypter;
-import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jwt.EncryptedJWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import lombok.extern.slf4j.Slf4j;
-import org.jenjetsu.com.brt.entity.Token;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.jenjetsu.com.brt.security.token.Token;
 
 import java.sql.Date;
 import java.util.function.Function;
 
-@Service
 @Slf4j
 public class RefreshTokenSerializer implements Function<Token, String> {
 
@@ -21,12 +16,12 @@ public class RefreshTokenSerializer implements Function<Token, String> {
     private final JWEEncrypter encrypter;
     private final EncryptionMethod encryptionMethod;
 
-    public RefreshTokenSerializer(@Value("${jwt.refresh-token-key}") String refreshTokenKey,
-                                  @Value("${jwt.jwe-encryption-method}") String encryptionMethod,
-                                  @Value("${jwt.jwe-algorithm}") String algorithm) throws Exception{
-        this.algorithm = JWEAlgorithm.parse(algorithm);
-        this.encryptionMethod = EncryptionMethod.parse(encryptionMethod);
-        this.encrypter = new DirectEncrypter(OctetSequenceKey.parse(refreshTokenKey));
+    public RefreshTokenSerializer(JWEEncrypter encrypter,
+                                  EncryptionMethod encryptionMethod,
+                                  JWEAlgorithm algorithm){
+        this.encrypter = encrypter;
+        this.encryptionMethod = encryptionMethod;
+        this.algorithm = algorithm;
     }
 
     @Override

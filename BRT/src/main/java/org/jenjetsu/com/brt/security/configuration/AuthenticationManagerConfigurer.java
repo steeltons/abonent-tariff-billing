@@ -1,4 +1,4 @@
-package org.jenjetsu.com.brt.security;
+package org.jenjetsu.com.brt.security.configuration;
 
 import org.jenjetsu.com.brt.service.AbonentService;
 import org.springframework.context.annotation.Bean;
@@ -9,14 +9,13 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import java.util.Arrays;
 
 @Configuration
-public class InMemoryUserConfiguration {
+public class AuthenticationManagerConfigurer {
 
     @Bean("inMemoryUserDetailsService")
     public UserDetailsService inMemoryUserDetailsService() {

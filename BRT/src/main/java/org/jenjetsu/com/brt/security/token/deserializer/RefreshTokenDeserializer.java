@@ -1,14 +1,14 @@
-package org.jenjetsu.com.brt.security;
+package org.jenjetsu.com.brt.security.token.deserializer;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEDecrypter;
+import com.nimbusds.jose.JWEEncrypter;
 import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jwt.EncryptedJWT;
 import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import lombok.extern.slf4j.Slf4j;
-import org.jenjetsu.com.brt.entity.Token;
+import org.jenjetsu.com.brt.security.token.Token;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -16,14 +16,13 @@ import java.text.ParseException;
 import java.util.UUID;
 import java.util.function.Function;
 
-@Component
 @Slf4j
 public class RefreshTokenDeserializer implements Function<String, Token> {
 
     private final JWEDecrypter jweDecrypter;
 
-    public RefreshTokenDeserializer(@Value("${jwt.refresh-token-key}") String refreshTokenKey) throws Exception{
-        this.jweDecrypter = new DirectDecrypter(OctetSequenceKey.parse(refreshTokenKey));
+    public RefreshTokenDeserializer(JWEDecrypter jweDecrypter){
+        this.jweDecrypter = jweDecrypter;
     }
 
     @Override

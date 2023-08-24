@@ -1,7 +1,7 @@
 package org.jenjetsu.com.brt.security;
 
 import lombok.Getter;
-import org.jenjetsu.com.brt.entity.Token;
+import org.jenjetsu.com.brt.security.token.Token;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 

@@ -1,4 +1,4 @@
-package org.jenjetsu.com.brt.configuration;
+package org.jenjetsu.com.brt.broker;
 
 import org.springframework.amqp.core.Queue;
 import org.springframework.context.annotation.Bean;

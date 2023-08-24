@@ -1,32 +1,27 @@
-package org.jenjetsu.com.brt.security;
+package org.jenjetsu.com.brt.security.token.deserializer;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.crypto.MACVerifier;
-import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.extern.slf4j.Slf4j;
-import org.jenjetsu.com.brt.entity.Token;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.jenjetsu.com.brt.security.token.Token;
 
 import java.text.ParseException;
 import java.util.UUID;
 import java.util.function.Function;
 
-@Component
 @Slf4j
 public class AccessTokenDeserializer implements Function<String, Token> {
 
     private final JWSVerifier jwsVerifier;
     private final JWSAlgorithm algorithm;
 
-    public AccessTokenDeserializer(@Value("${jwt.access-token-key}") String accessTokenKey,
-                                 @Value("${jwt.jws-algorithm}") String algorithm) throws Exception{
-        this.algorithm = JWSAlgorithm.parse(algorithm);
-        this.jwsVerifier = new MACVerifier(OctetSequenceKey.parse(accessTokenKey));
+    public AccessTokenDeserializer(JWSVerifier jwsVerifier,
+                                 JWSAlgorithm algorithm) {
+        this.jwsVerifier = jwsVerifier;
+        this.algorithm = algorithm;
     }
 
     @Override

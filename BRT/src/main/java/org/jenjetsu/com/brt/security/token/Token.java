@@ -1,4 +1,4 @@
-package org.jenjetsu.com.brt.entity;
+package org.jenjetsu.com.brt.security.token;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

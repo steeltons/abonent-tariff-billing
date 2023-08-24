@@ -5,9 +5,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.jenjetsu.com.brt.dto.TokensDto;
+import org.jenjetsu.com.brt.security.token.TokensDto;
 import org.jenjetsu.com.brt.entity.DeactivatedToken;
-import org.jenjetsu.com.brt.entity.Token;
+import org.jenjetsu.com.brt.security.token.Token;
 import org.jenjetsu.com.brt.security.TokenUser;
 import org.jenjetsu.com.brt.service.DeactivatedTokenService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,22 +34,22 @@ public class RefreshTokenFilter extends OncePerRequestFilter {
 
     private final RequestMatcher matcher = new AntPathRequestMatcher("/jwt/refresh", HttpMethod.POST.name());;
     private final SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();
-    private final Function<Authentication, Token> refreshTokenBuilder;
-    private final Function<Token, Token> accessTokenBuilder;
+    private final Function<Authentication, Token> refreshTokenGenerator;
+    private final Function<Token, Token> accessTokenGenerator;
     private final Function<Token, String> refreshTokenSerializer;
     private final Function<Token, String> accessTokenSerializer;
     private final DeactivatedTokenService deactivatedTokenService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public RefreshTokenFilter(@Qualifier("accessTokenBuilder") Function<Token, Token> accessTokenBuilder,
+    public RefreshTokenFilter(@Qualifier("accessTokenGenerator") Function<Token, Token> accessTokenGenerator,
                               @Qualifier("accessTokenSerializer") Function<Token, String> accessTokenSerializer,
-                              @Qualifier("refreshTokenBuilder") Function<Authentication, Token> refreshTokenBuilder,
+                              @Qualifier("refreshTokenGenerator") Function<Authentication, Token> refreshTokenGenerator,
                               @Qualifier("refreshTokenSerializer") Function<Token, String> refreshTokenSerializer,
                               DeactivatedTokenService deactivatedTokenService) {
-        this.accessTokenBuilder = accessTokenBuilder;
+        this.accessTokenGenerator = accessTokenGenerator;
         this.accessTokenSerializer = accessTokenSerializer;
         this.deactivatedTokenService = deactivatedTokenService;
-        this.refreshTokenBuilder = refreshTokenBuilder;
+        this.refreshTokenGenerator = refreshTokenGenerator;
         this.refreshTokenSerializer = refreshTokenSerializer;
     }
 
@@ -66,8 +66,8 @@ public class RefreshTokenFilter extends OncePerRequestFilter {
                     deactivatedToken.setId(user.getToken().getId());
                     deactivatedToken.setKeepUntil(Timestamp.from(user.getToken().getExpiredAt()));
                     deactivatedTokenService.create(deactivatedToken);
-                    Token refreshToken = refreshTokenBuilder.apply(auth);
-                    Token accessToken = accessTokenBuilder.apply(refreshToken);
+                    Token refreshToken = refreshTokenGenerator.apply(auth);
+                    Token accessToken = accessTokenGenerator.apply(refreshToken);
                     response.setStatus(HttpServletResponse.SC_OK);
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     objectMapper.writeValue(response.getWriter(),

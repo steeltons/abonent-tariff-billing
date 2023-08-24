@@ -1,19 +1,16 @@
-package org.jenjetsu.com.brt.security;
+package org.jenjetsu.com.brt.security.token.generator;
 
-import org.jenjetsu.com.brt.entity.Token;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.jenjetsu.com.brt.security.token.Token;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Function;
 
-@Component
-public class AccessTokenBuilder implements Function<Token, Token> {
+public class AccessTokenGenerator implements Function<Token, Token> {
 
     private final Duration ACCESS_TOKEN_LIFE_TIME;
 
-    public AccessTokenBuilder(@Value("${jwt.access-token-days}") final Long tokenLifeMinutesDuration) {
+    public AccessTokenGenerator(Integer tokenLifeMinutesDuration) {
         this.ACCESS_TOKEN_LIFE_TIME = Duration.ofMinutes(tokenLifeMinutesDuration);
     }
 

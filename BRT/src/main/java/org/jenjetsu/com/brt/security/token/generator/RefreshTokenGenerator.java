@@ -1,10 +1,8 @@
-package org.jenjetsu.com.brt.security;
+package org.jenjetsu.com.brt.security.token.generator;
 
-import org.jenjetsu.com.brt.entity.Token;
-import org.springframework.beans.factory.annotation.Value;
+import org.jenjetsu.com.brt.security.token.Token;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -13,12 +11,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
-@Component
-public class RefreshTokenBuilder implements Function<Authentication, Token> {
+public class RefreshTokenGenerator implements Function<Authentication, Token> {
 
     private final Duration REFRESH_TOKEN_LIFE_TIME;
 
-    public RefreshTokenBuilder(@Value("${jwt.refresh-token-minutes}") Long tokenLifeDaysDuration) {
+    public RefreshTokenGenerator(Integer tokenLifeDaysDuration) {
         this.REFRESH_TOKEN_LIFE_TIME = Duration.ofDays(tokenLifeDaysDuration);
     }
 

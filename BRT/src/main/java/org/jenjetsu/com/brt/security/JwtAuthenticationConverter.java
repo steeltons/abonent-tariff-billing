@@ -1,7 +1,7 @@
 package org.jenjetsu.com.brt.security;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.jenjetsu.com.brt.entity.Token;
+import org.jenjetsu.com.brt.security.token.Token;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;

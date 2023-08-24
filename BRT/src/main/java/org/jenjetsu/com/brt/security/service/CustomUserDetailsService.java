@@ -1,4 +1,4 @@
-package org.jenjetsu.com.brt.security;
+package org.jenjetsu.com.brt.security.service;
 
 import org.jenjetsu.com.brt.service.AbonentService;
 import org.springframework.beans.factory.annotation.Qualifier;

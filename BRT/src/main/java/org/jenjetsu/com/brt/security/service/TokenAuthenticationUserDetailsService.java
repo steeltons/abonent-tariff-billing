@@ -1,7 +1,8 @@
-package org.jenjetsu.com.brt.security;
+package org.jenjetsu.com.brt.security.service;
 
 import lombok.AllArgsConstructor;
-import org.jenjetsu.com.brt.entity.Token;
+import org.jenjetsu.com.brt.security.TokenUser;
+import org.jenjetsu.com.brt.security.token.Token;
 import org.jenjetsu.com.brt.service.DeactivatedTokenService;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.AuthenticationUserDetailsService;

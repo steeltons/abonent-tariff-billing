@@ -1,21 +1,16 @@
-package org.jenjetsu.com.brt.security;
+package org.jenjetsu.com.brt.security.configuration;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
-import org.apache.catalina.filters.CorsFilter;
+import org.jenjetsu.com.brt.security.JwtAuthenticationConverter;
+import org.jenjetsu.com.brt.security.service.TokenAuthenticationUserDetailsService;
 import org.jenjetsu.com.brt.security.filter.AuthorizationJwtFilter;
 import org.jenjetsu.com.brt.security.filter.RefreshTokenFilter;
 import org.jenjetsu.com.brt.security.filter.RequestJwtTokensFilter;
-import org.jenjetsu.com.brt.service.AbonentService;
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.authentication.AuthenticationFilter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
