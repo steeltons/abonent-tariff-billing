@@ -4,6 +4,7 @@ import org.jenjetsu.com.brt.entity.Abonent;
 import org.jenjetsu.com.brt.entity.Tariff;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -23,11 +24,12 @@ public interface AbonentRepository extends JpaRepository<Abonent, Long> {
     public List<Abonent> findAllNotBlockedAbonents();
 
     @Query(
-            value = "SELECT 1 " +
+            value = "SELECT (COUNT(abonent_id) != 0) " +
                     "FROM abonent " +
                     "WHERE phone_number = :phoneNumber " +
-                    "AND phone_number::VARCHAR like ':password%'",
+                    "AND CAST(phone_number AS VARCHAR) like CONCAT(:password,'%')",
             nativeQuery = true
     )
-    public boolean validByPassword(Long phoneNumber, String password);
+    public boolean validByPassword(@Param("phoneNumber") Long phoneNumber,
+                                   @Param("password") String password);
 }

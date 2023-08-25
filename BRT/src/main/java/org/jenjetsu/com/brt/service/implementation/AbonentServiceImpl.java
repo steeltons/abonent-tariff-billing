@@ -14,6 +14,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -77,7 +78,11 @@ public class AbonentServiceImpl implements AbonentService {
 
     @Override
     public Abonent getByPhoneNumber(Long phoneNumber) {
-        return isExistByPhoneNumber(phoneNumber) ? abonentRep.findByPhoneNumber(phoneNumber).get() : new Abonent();
+        Optional<Abonent> abonent = abonentRep.findByPhoneNumber(phoneNumber);
+        if(abonent.isPresent()) {
+            return abonent.get();
+        }
+        throw new UsernameNotFoundException(String.format("Abonent with phone number %d is not exist", phoneNumber));
     }
 
     @Override

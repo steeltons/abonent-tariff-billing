@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.jenjetsu.com.brt.security.JwtAuthenticationConverter;
 import org.jenjetsu.com.brt.security.service.TokenAuthenticationUserDetailsService;
-import org.jenjetsu.com.brt.security.filter.AuthorizationJwtFilter;
 import org.jenjetsu.com.brt.security.filter.RefreshTokenFilter;
 import org.jenjetsu.com.brt.security.filter.RequestJwtTokensFilter;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,7 +25,6 @@ public class JwtAuthenticationConfigurer
     private final RequestJwtTokensFilter requestJwtTokensFilter;
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
     private final RefreshTokenFilter refreshTokenFilter;
-    private final AuthorizationJwtFilter authorizationJwtFilter;
     private final TokenAuthenticationUserDetailsService tokenAuthenticationUserDetailsService;
 
     @Override
@@ -44,12 +42,10 @@ public class JwtAuthenticationConfigurer
                 new AuthenticationFilter(http.getSharedObject(AuthenticationManager.class), jwtAuthenticationConverter);
         jwtAuthenticationFilter.setSuccessHandler((req, resp, auth) -> CsrfFilter.skipRequest(req));
         jwtAuthenticationFilter.setFailureHandler((req, resp, exception) -> resp.sendError(HttpServletResponse.SC_FORBIDDEN));
-
         PreAuthenticatedAuthenticationProvider authenticationProvider = new PreAuthenticatedAuthenticationProvider();
         authenticationProvider.setPreAuthenticatedUserDetailsService(tokenAuthenticationUserDetailsService);
 
         http
-            .addFilterBefore(authorizationJwtFilter, ExceptionTranslationFilter.class)
             .addFilterAfter(requestJwtTokensFilter, ExceptionTranslationFilter.class)
             .addFilterAfter(refreshTokenFilter, ExceptionTranslationFilter.class)
             .addFilterBefore(jwtAuthenticationFilter, CsrfFilter.class)

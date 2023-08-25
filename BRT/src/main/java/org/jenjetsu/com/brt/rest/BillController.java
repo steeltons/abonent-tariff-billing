@@ -13,9 +13,14 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Locale;
 
+/**
+ * <h2>Bill Controller</h2>
+ * @deprecated I don't know why this controller exist. Same functional has AbonentController.
+ */
 @RestController
 @RequestMapping("/bill")
 @AllArgsConstructor
+@Deprecated(forRemoval = true)
 public class BillController {
 
     private final String CDR_HEALTH_CHECK_PATH = "http://localhost:8100/actuator/health";

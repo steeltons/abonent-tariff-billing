@@ -53,6 +53,14 @@ public class AbonentController {
         return null;
     }
 
+    /**
+     * <h2>Get not blocked abonents</h2>
+     * Return phone number list of who's balance > -100 (As I remember).
+     * @return OK - list of phone numbers
+     * @deprecated Will be reworked soon because BRT now implements Spring security, so CDR cannot legally access to
+     * this method without token.
+     */
+    @Deprecated(forRemoval = true)
     @GetMapping("/get-not-blocked")
     public ResponseEntity<?> getNotBlockedAbonents() {
         List<Long> numbers = abonentService.getAllNotBannedAbonents().stream().map(Abonent::getPhoneNumber).collect(Collectors.toList());
