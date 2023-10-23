@@ -1,7 +1,0 @@
-server:
-  port: 8102
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE}
