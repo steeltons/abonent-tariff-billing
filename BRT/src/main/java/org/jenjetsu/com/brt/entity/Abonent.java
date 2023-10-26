@@ -1,67 +1,53 @@
 package org.jenjetsu.com.brt.entity;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
+import static jakarta.persistence.CascadeType.DETACH;
+import static jakarta.persistence.CascadeType.MERGE;
 
 import java.util.List;
+import java.util.UUID;
 
-@Data
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.Max;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter @Setter @ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity(name = "abonent")
-public class Abonent implements Cloneable{
-
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long abonentId;
+@Builder
+public class Abonent {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID abonentId;
     @Column(name = "phone_number", nullable = false, unique = true)
-    @Min(79000000000l) @Max(89999999999l)
     private Long phoneNumber;
-    @Column(name = "balance", columnDefinition = "NUMERIC(6,2) DEFAULT 0.0", precision = 6, scale = 2)
-    @Min(-100000)
-    private Double balance;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "tariff_id", nullable = true)
-    private Tariff tariff;
-    @OneToMany(fetch = FetchType.LAZY)
-    private List<AbonentPayload> payloads;
-    @Column(name = "blocked", columnDefinition = "BOOLEAN DEFAULT FALSE")
+    @Column(
+            name = "balance", nullable = false, 
+            precision = 6, length = 2, columnDefinition = "NUMERIC(6,2) DEFAULT 0.0"
+           )
+    @Max(100000)
+    private Float balance;
+    @Column(name = "is_blocked", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean isBlocked;
-
-    public double increaseBalance(double increment) {
-        double prev = this.balance;
-        this.balance += increment;
-        return prev;
-    }
-
-    @Override
-    public Abonent clone(){
-        try {
-            Abonent abonent = (Abonent) super.clone();
-            abonent.setTariff(this.getTariff());
-            return abonent;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
-    }
-
-    public double decreaseBalance(double decrement) {
-        return this.increaseBalance(-decrement);
-    }
-
-    public Abonent update(Abonent newAbonent) {
-        Abonent pred = this.clone();
-        if(newAbonent.balance != null && !this.balance.equals(newAbonent.balance)) {
-            this.balance = newAbonent.balance;
-        }
-        if(newAbonent.tariff != null && !this.tariff.equals(newAbonent.tariff)) {
-            this.tariff = newAbonent.tariff;
-        }
-        return pred;
-    }
+    @ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = {MERGE, DETACH})
+    @JoinColumn(name = "tariff_id", nullable = false)
+    private Tariff tariff;
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "abonent_id")
+    private List<AbonentPayload> payloadList;
 }

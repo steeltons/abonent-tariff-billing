@@ -1,12 +1,3 @@
-spring:
-  application:
-    name: BRT
-  config:
-    import: "configserver:"
-  cloud:
-    config:
-      name: BRT,database,minio,rabbitmq,eureka-client
-
 jwt:
   access-token-key: '{"kty":"oct","k":"hi7S5RX5ZRZooHA0RKGctZ-KtR9FoESgCnH-3BNg5XI"}'
   access-token-minutes: 15

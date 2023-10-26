@@ -38,7 +38,7 @@ public class AdminAuthenticationProvider implements AuthenticationProvider {
         authorityList.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         return UsernamePasswordAuthenticationToken.authenticated(
                 username,
-                "nopassword",
+                "{noop}",
                 authorityList
         );
     }

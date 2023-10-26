@@ -12,6 +12,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -25,7 +26,7 @@ public class TokenAuthenticationUserDetailsService
             throws UsernameNotFoundException {
         if(authenticationToken.getPrincipal() instanceof Token token) {
             return new TokenUser(token.getSubject(), "nopassword", true, true,
-                    !deactivatedTokenService.isExistById(token.getId()) &&
+                    !deactivatedTokenService.existsById(UUID.fromString(token.getId())) &&
                     token.getExpiredAt().isAfter(Instant.now()), true,
                     token.getAuthorities().stream().map(SimpleGrantedAuthority::new).toList(),
                     token);

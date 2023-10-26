@@ -1,0 +1,7 @@
+spring:
+  config:
+    import: "configserver:"
+  cloud:
+    config:
+      name: CDR,rabbitmq,database,minio,eureka-client
+      uri: http://localhost:8888

@@ -15,8 +15,15 @@ public class CdrFileParser {
     /**
      * <h2>Parse cdr file to abonent calls</h2>
      * Parse input cdr file and group calls by caller
+     * Output example:
+     * {
+     *     79147869165 : [{callType= 1, phoneNumber= 79147869165, callTo= 79000000000,
+     *                     startCallingDate=20231212154300, endCallingDate=20231212154340
+     *                    }, {...}],
+     *     79147869166 : {...}
+     * }
      * @param cdrFile
-     * @return
+     * @return Map<Long, List<CallInformation>> - map, that grouped by phone number
      */
     public Map<Long, List<CallInformation>> parseCdrFileToAbonentCalls(Resource cdrFile){
         try(Scanner scanner = new Scanner(cdrFile.getInputStream())) {

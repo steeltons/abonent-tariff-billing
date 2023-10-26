@@ -1,6 +1,0 @@
-spring:
-  config:
-    import: "configserver:"
-  cloud:
-    config:
-      name: CDR,rabbitmq,minio,eureka-client

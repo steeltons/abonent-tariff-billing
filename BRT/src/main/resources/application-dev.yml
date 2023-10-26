@@ -1,0 +1,8 @@
+jwt:
+  access-token-key: ${JWT_ACCESS-TOKEN-KEY}
+  access-token-minutes: ${JWT_ACCESS-TOKEN-MINUTES}
+  refresh-token-key: ${JWT_REFRESH-TOKEN-KEY}
+  refresh-token-days: ${JWT_REFRESH-TOKEN-DAYS}
+  jws-algorithm: ${JWT_JSW-ALGORITHM}
+  jwe-algorithm: ${JWT_JWE-ALGORITHM}
+  jwe-encryption-method: ${JWT_JWE-ENCRYPTIOM_METHOD}

@@ -1,54 +1,44 @@
 package org.jenjetsu.com.brt.entity;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
 import java.util.List;
+import java.util.UUID;
 
-@Data
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter @Setter @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
 @Entity(name = "tariff")
-public class Tariff implements Cloneable{
-
-    @Id private Integer tariffCode;
-    @Column(name = "description", length = 255, columnDefinition = "VARCHAR(255) DEFAULT ''")
+@Builder
+public class Tariff {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID tariffId;
+    @Column(name = "name", length = 72, unique = true, nullable = false)
+    private String name;
+    @Column(name = "description", length = 510, nullable = true)
     private String description;
-    @Column(name = "base_cost", nullable = false)
-    private Double baseCost;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "region_id", nullable = false)
-    private Region region;
-    @OneToMany(mappedBy = "tariff", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<TariffCallOption> callOptionList;
-
-    @Override
-    public Tariff clone(){
-        try {
-            Tariff clone = (Tariff) super.clone();
-            clone.setRegion(this.region);
-            clone.setCallOptionList(this.callOptionList);
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
-    }
-
-    public Tariff update(Tariff newTariff) {
-        Tariff pred = this.clone();
-        if(newTariff.baseCost != null && !this.baseCost.equals(newTariff.baseCost)) {
-            this.baseCost = newTariff.getBaseCost();
-        }
-        if(newTariff.region != null && !this.region.equals(newTariff.region)) {
-            this.region = newTariff.region;
-        }
-        if(newTariff.callOptionList != null && newTariff.callOptionList.size() != 0) {
-            this.callOptionList = newTariff.callOptionList;
-        }
-        return pred;
-    }
+    @Column(name = "base_cost", nullable = false, precision = 6, scale = 2)
+    @Min(0) @Max(3000)
+    private Float baseCost;
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "tariff_id")
+    private List<CallOption> callOptionList;
 }

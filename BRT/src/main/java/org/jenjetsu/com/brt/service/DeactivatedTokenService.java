@@ -2,8 +2,7 @@ package org.jenjetsu.com.brt.service;
 
 import org.jenjetsu.com.brt.entity.DeactivatedToken;
 
-public interface DeactivatedTokenService extends CreateInterface<DeactivatedToken>,
-                                                 ReadInterface<DeactivatedToken, String>{
+import java.util.UUID;
 
-    public boolean isExistById(String id);
+public interface DeactivatedTokenService extends DAOService<DeactivatedToken, UUID>{
 }

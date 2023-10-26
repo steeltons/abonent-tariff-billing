@@ -2,10 +2,9 @@ package org.jenjetsu.com.brt.service;
 
 import org.jenjetsu.com.brt.entity.Tariff;
 
-public interface TariffService extends CreateInterface<Tariff>,
-                                       ReadInterface<Tariff, Integer>,
-                                       UpdateInterface<Tariff, Integer>{
+import java.util.UUID;
 
-    public boolean isExistById(Integer id);
+public interface TariffService extends DAOService<Tariff, UUID>{
+
     public Tariff getTariffByAbonentPhoneNumber(Long phoneNumber);
 }

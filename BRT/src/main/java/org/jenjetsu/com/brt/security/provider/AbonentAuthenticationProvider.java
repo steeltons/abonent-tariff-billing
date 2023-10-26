@@ -42,7 +42,7 @@ public class AbonentAuthenticationProvider implements AuthenticationProvider {
             authorityList.add(new SimpleGrantedAuthority("ROLE_ABONENT"));
             return UsernamePasswordAuthenticationToken.authenticated(
                     Long.toString(phoneNumber),
-                    "nopassword",
+                    "{noop}",
                     authorityList
             );
         }

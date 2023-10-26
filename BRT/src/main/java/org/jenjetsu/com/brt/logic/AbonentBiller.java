@@ -1,72 +1,77 @@
 package org.jenjetsu.com.brt.logic;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.jenjetsu.com.brt.entity.Abonent;
-import org.jenjetsu.com.brt.entity.AbonentPayload;
-import org.jenjetsu.com.brt.repository.AbonentPayloadRepository;
-import org.jenjetsu.com.brt.service.AbonentService;
-import org.jenjetsu.com.core.entity.AbonentBill;
-import org.jenjetsu.com.core.entity.CallBillInformation;
-import org.jenjetsu.com.core.service.MinioService;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.support.TransactionTemplate;
-
 import java.io.ByteArrayOutputStream;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+
+import org.jenjetsu.com.brt.entity.Abonent;
+import org.jenjetsu.com.brt.entity.AbonentPayload;
+import org.jenjetsu.com.brt.entity.enums.CallType;
+import org.jenjetsu.com.brt.service.AbonentPayloadService;
+import org.jenjetsu.com.brt.service.AbonentService;
+import org.jenjetsu.com.core.entity.AbonentBill;
+import org.jenjetsu.com.core.service.MinioService;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class AbonentBiller {
 
-    private final Double MIN_BALANCE_TO_BLOCK = -100.0;
+    private final Double MIN_BALANCE_TO_BLOCK = -300.0;
 
     private final AbonentService abonentService;
-    private final AbonentPayloadRepository abonentPayloadRep;
+    private final AbonentPayloadService payloadService;
     private final MinioService minioService;
-    private final TransactionTemplate transactionTemplate;
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void billAbonents(List<AbonentBill> abonentBillList) {
         log.info("Start billing abonents.");
-        transactionTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_DEFAULT);
-        transactionTemplate.executeWithoutResult((status) -> {
-            long blockedAbonents = 0l;
-            try {
-                for(AbonentBill abonentBill : abonentBillList) {
-                    Abonent abonent = abonentService.getByPhoneNumber(abonentBill.getPhoneNumber());
-                    abonent.decreaseBalance(abonentBill.getTotalCost());
-                    if(abonent.getBalance() < MIN_BALANCE_TO_BLOCK) {
-                        abonent.setIsBlocked(true);
-                        blockedAbonents++;
-                    }
-                    for(CallBillInformation callBillInformation : abonentBill.getCallBillInformationList()) {
-                        AbonentPayload payload = new AbonentPayload();
-                        payload.setAbonent(abonent);
-                        payload.setCallType(callBillInformation.getCallType());
-                        payload.setCallTo(callBillInformation.getCallTo());
-                        payload.setStartCallingTime(new java.sql.Date(callBillInformation.getStartCallingDate().getTime()));
-                        payload.setEndCallingTime(new java.sql.Date(callBillInformation.getEndCallingDate().getTime()));
-                        payload.setDuration(new java.sql.Time(callBillInformation.getDuration() * 1000));
-                        payload.setCost(callBillInformation.getCost().floatValue());
-                        abonentPayloadRep.save(payload);
-                    }
+        long blockedAbonents = 0l;
+        try {
+            for(AbonentBill abonentBill: abonentBillList) {
+                Abonent abonent = this.abonentService.readByPhoneNumber(abonentBill.getPhoneNumber());
+                abonent.setBalance(abonent.getBalance() - abonentBill.getTotalCost().floatValue());
+                if(abonent.getBalance() < MIN_BALANCE_TO_BLOCK) {
+                    abonent.setIsBlocked(true);
+                    blockedAbonents++;
                 }
-                log.info("End billing abonents");
-                Resource resultFile = createBillingResultFile(abonentBillList, blockedAbonents);
-                minioService.putFile(resultFile.getFilename(), "trash", resultFile.getInputStream());
-                log.info("Information of billing in {} file.", resultFile.getFilename());
-            } catch (Exception e) {
-                throw new RuntimeException("Error billing abonents.", e);
+                abonentBill.getCallBillInformationList()
+                    .stream()
+                    .map(info -> AbonentPayload.builder()
+                                        .abonent(abonent)
+                                        .callType(CallType.getByCode(info.getCallType()))
+                                        .callTo(info.getCallTo())
+                                        .startCallingTime(Timestamp.from(info.getStartCallingDate().toInstant()))
+                                        .endCallingTime(Timestamp.from(info.getEndCallingDate().toInstant()))
+                                        .cost(info.getCost().floatValue())
+                                        .duration(new Time(info.getDuration()))
+                                        .build()
+                        )
+                    .forEach(this.payloadService::create);
             }
-        });
+            log.info("End billing abonents");
+            Resource resultFile = this.createBillingResultFile(abonentBillList, blockedAbonents);
+            minioService.putFile(resultFile.getFilename(), "trash", resultFile.getInputStream());
+            log.info("Information of billing in {} file.", resultFile.getFilename());
+        } catch(Exception e) {
+            throw new RuntimeException("Error billing abonents.", e);
+        }
+
     }
+
+
 
     private Resource createBillingResultFile(List<AbonentBill> abonentBillList, long blockedAbonents) throws Exception{
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

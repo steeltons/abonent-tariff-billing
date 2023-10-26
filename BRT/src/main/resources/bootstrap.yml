@@ -1,0 +1,11 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: BRT
+  config:
+    import: "configserver:"
+  cloud:
+    config:
+      name: BRT,database,minio,rabbitmq,eureka-client

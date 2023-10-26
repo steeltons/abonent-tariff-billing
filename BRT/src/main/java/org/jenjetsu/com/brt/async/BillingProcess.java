@@ -1,6 +1,8 @@
 package org.jenjetsu.com.brt.async;
 
 import lombok.extern.slf4j.Slf4j;
+import org.jenjetsu.com.brt.broker.CdrMessageSender;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ public class BillingProcess {
     private volatile Date start;
     private TimeoutException timeoutException;
     private boolean transfer;
+    private CdrMessageSender messageSender;
 
     public BillingProcess() {
         this(12000L);
@@ -31,8 +34,8 @@ public class BillingProcess {
         transfer = false;
     }
 
-    public ResponseEntity<?> joinToBillingProcess() {
-        tryUpdate();
+    public ResponseEntity<?> joinToBillingProcess(String command) {
+        tryUpdate(command);
         Thread thread = new Thread(this::receive);
         thread.start();
         try {
@@ -84,12 +87,18 @@ public class BillingProcess {
         return data != null || timeoutException != null || start.before(new Date(System.currentTimeMillis() - timeout));
     }
 
-    private synchronized void tryUpdate() {
+    private synchronized void tryUpdate(String command) {
         if(isExpired()) {
             this.data = null;
             this.start = new Date();
             this.timeoutException = null;
             this.transfer = true;
+            messageSender.sendCdrCommand(command);
         }
+    }
+
+    @Autowired
+    public void setMessageSender(CdrMessageSender messageSender) {
+        this.messageSender = messageSender;
     }
 }

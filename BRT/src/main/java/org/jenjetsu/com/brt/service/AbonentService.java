@@ -1,26 +1,22 @@
 package org.jenjetsu.com.brt.service;
 
+import java.util.List;
+import java.util.UUID;
+
 import org.jenjetsu.com.brt.entity.Abonent;
-import org.jenjetsu.com.brt.entity.Tariff;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import java.util.List;
-import java.util.Optional;
-
-public interface AbonentService extends CreateInterface<Abonent>,
-                                        ReadInterface<Abonent, Long>,
-                                        UpdateInterface<Abonent, Long>{
+public interface AbonentService extends DAOService<Abonent, UUID>{
 
     public boolean isExistByPhoneNumber(Long phoneNumber);
-    public Abonent getByPhoneNumber(Long phoneNumber);
-    public Abonent increaseBalanceById(Long abonentId, double increment);
-    public Abonent decreaseBalanceById(Long abonentId, double decrement);
-    public Abonent increaseBalanceByPhoneNumber(Long phoneNumber, double increment);
-    public Abonent decreaseBalanceByPhonenUmber(Long phoneNumber, double decrement);
-    public List<Abonent> getAllNotBannedAbonents();
-
-//    public UserDetails loadByPhoneNumberAndPassword(Long phoneNumber, String password) throws UsernameNotFoundException;
+    public Abonent readByPhoneNumber(Long phoneNumber);
+    public Abonent increaseBalanceById(UUID abonentId, float increment);
+    public Abonent decreaseBalanceById(UUID abonentId, float decrement);
+    public Abonent increaseBalanceByPhoneNumber(Long phoneNumber, float increment);
+    public Abonent decreaseBalanceByPhonenUmber(Long phoneNumber, float decrement);
+    public List<Abonent> readAllNotBannedAbonents();
     public UserDetails loadByPhoneNumber(Long phoneNumber) throws UsernameNotFoundException;
     public boolean authenticateAbonent(Long phoneNumber, String password);
+    public Abonent readAbonentWithPayloadsByPhoneNumber(Long phonenUmber);
 }

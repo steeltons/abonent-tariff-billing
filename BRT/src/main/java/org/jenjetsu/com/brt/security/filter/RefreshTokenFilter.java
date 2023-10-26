@@ -27,6 +27,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Component
@@ -62,10 +63,12 @@ public class RefreshTokenFilter extends OncePerRequestFilter {
                 if(context != null && context.getAuthentication() instanceof PreAuthenticatedAuthenticationToken auth &&
                         context.getAuthentication().getPrincipal() instanceof TokenUser user &&
                         context.getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("JWT_REFRESH"))) {
-                    DeactivatedToken deactivatedToken = new DeactivatedToken();
-                    deactivatedToken.setId(user.getToken().getId());
-                    deactivatedToken.setKeepUntil(Timestamp.from(user.getToken().getExpiredAt()));
-                    deactivatedTokenService.create(deactivatedToken);
+                    deactivatedTokenService.create(
+                            DeactivatedToken.builder()
+                                            .tokenId(UUID.fromString(user.getToken().getId()))
+                                            .keepUntil(Timestamp.from(user.getToken().getExpiredAt()))
+                                            .build()
+                    );
                     Token refreshToken = refreshTokenGenerator.apply(auth);
                     Token accessToken = accessTokenGenerator.apply(refreshToken);
                     response.setStatus(HttpServletResponse.SC_OK);

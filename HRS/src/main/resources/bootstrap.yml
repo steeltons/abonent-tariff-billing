@@ -1,0 +1,9 @@
+server:
+  port: 8102
+
+spring:
+  config:
+    import: "configserver:"
+  cloud:
+    config:
+      name: HRS,rabbitmq,minio,eureka-client

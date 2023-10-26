@@ -1,10 +1,9 @@
 package org.jenjetsu.com.brt.security.filter;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.UUID;
+
 import org.jenjetsu.com.brt.entity.DeactivatedToken;
 import org.jenjetsu.com.brt.security.TokenUser;
 import org.jenjetsu.com.brt.service.DeactivatedTokenService;
@@ -19,8 +18,11 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.sql.Timestamp;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
 
 @Component
 @AllArgsConstructor
@@ -39,9 +41,10 @@ public class JwtLogoutFilter extends OncePerRequestFilter {
                 if(context != null && context.getAuthentication() instanceof PreAuthenticatedAuthenticationToken &&
                     context.getAuthentication().getPrincipal() instanceof TokenUser user &&
                     context.getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("JWT_REFRESH"))) {
-                    DeactivatedToken deactivatedToken = new DeactivatedToken();
-                    deactivatedToken.setId(user.getToken().getId());
-                    deactivatedToken.setKeepUntil(Timestamp.from(user.getToken().getExpiredAt()));
+                    DeactivatedToken deactivatedToken = DeactivatedToken.builder()
+                                    .tokenId(UUID.fromString(user.getToken().getId()))
+                                    .keepUntil(Timestamp.from(user.getToken().getExpiredAt()))
+                                    .build();
                     deactivatedTokenService.create(deactivatedToken);
                     response.setStatus(HttpServletResponse.SC_NO_CONTENT);
                     return;

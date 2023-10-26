@@ -1,168 +1,109 @@
 package org.jenjetsu.com.brt.service.implementation;
 
-import lombok.AllArgsConstructor;
+import static java.lang.String.format;
+import java.util.List;
+import java.util.UUID;
+
 import org.jenjetsu.com.brt.entity.Abonent;
-import org.jenjetsu.com.brt.repository.AbonentRepository;
+import org.jenjetsu.com.brt.exception.EntityNotFoundException;
 import org.jenjetsu.com.brt.service.AbonentService;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
+import jakarta.transaction.Transactional;
 
 @Service
-@AllArgsConstructor
-public class AbonentServiceImpl implements AbonentService {
-    private final AbonentRepository abonentRep;
-    private final TransactionTemplate transactionTemplate;
+public class AbonentServiceImpl extends AbstractDAORepository<Abonent, UUID>
+                                implements AbonentService {
 
-    @Override
-    public Abonent create(Abonent raw) {
-        Abonent abonent = transactionTemplate.execute((status) -> {
-            try {
-                abonentRep.save(raw);
-                return raw;
-            } catch (Exception e) {
-                throw new RuntimeException("Error create new abonent");
-            }
-        });
-        return abonent;
-    }
-
-    @Override
-    public List<Abonent> createAll(Collection<Abonent> rawCollection) {
-        transactionTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_DEFAULT);
-        List<Abonent> abonents = new ArrayList<>();
-        transactionTemplate.executeWithoutResult((status) -> {
-            try {
-                for(Abonent abonent : rawCollection) {
-                    abonentRep.save(abonent);
-                    abonents.add(abonent);
-                }
-            } catch (Exception e) {
-                abonents.clear();
-                throw new RuntimeException("Error create new abonents");
-            }
-        });
-        return abonents;
-    }
-
-    public boolean isExistById(Long id) {
-        return id != null && abonentRep.existsById(id);
-    }
-
-    @Override
-    public Abonent readById(Long aLong) {
-        if(isExistById(aLong)) {
-            return abonentRep.findById(aLong).get();
-        } else {
-            return new Abonent();
-        }
-    }
-
-    @Override
-    public List<Abonent> readAll() {
-        return abonentRep.findAll();
+    public AbonentServiceImpl() {
+        super(Abonent.class);
     }
 
     @Override
     public boolean isExistByPhoneNumber(Long phoneNumber) {
-        return phoneNumber != null && abonentRep.existsByPhoneNumber(phoneNumber);
+        if(phoneNumber == null) return false;
+        CriteriaBuilder cb = this.entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+        Root<Abonent> abonentRoot = cq.from(Abonent.class);
+        cq.select(cb.count(abonentRoot.get("abonent_id")))
+          .where(cb.equal(abonentRoot.get("phone_number"), phoneNumber));
+        return this.entityManager.createQuery(cq).getSingleResult() != 0;
     }
 
     @Override
-    public Abonent getByPhoneNumber(Long phoneNumber) {
-        Optional<Abonent> abonent = abonentRep.findByPhoneNumber(phoneNumber);
-        if(abonent.isPresent()) {
-            return abonent.get();
+    public Abonent readByPhoneNumber(Long phoneNumber) {
+        if(!this.isExistByPhoneNumber(phoneNumber)) {
+            throw new EntityNotFoundException(format("Abonent with phone number %s not exists", phoneNumber));
         }
-        throw new UsernameNotFoundException(String.format("Abonent with phone number %d is not exist", phoneNumber));
+        CriteriaBuilder cb = this.entityManager.getCriteriaBuilder();
+        CriteriaQuery<Abonent> cq = cb.createQuery(Abonent.class);
+        Root<Abonent> abonentRoot = cq.from(Abonent.class);
+        cq.select(abonentRoot)
+          .where(cb.equal(abonentRoot.get("phone_number"), phoneNumber));
+        return this.entityManager.createQuery(cq).getSingleResult();
     }
 
     @Override
-    public Abonent increaseBalanceById(Long id, double increment) {
-        if(isExistById(id)) {
-            return transactionTemplate.execute((status) -> {
-                try {
-                    Abonent abonent = abonentRep.findById(id).get();
-                    abonent.increaseBalance(increment);
-                    return abonent;
-                } catch (Exception e) {
-                    throw new RuntimeException("Error update abonent with id %d. Error message : %s");
-                }
-            });
-        } else {
-            throw new RuntimeException("Abonent with id is not exist");
-        }
+    @Transactional
+    public Abonent increaseBalanceById(UUID abonentId, float increment) {
+        Abonent abonent = this.readById(abonentId);
+        abonent.setBalance(abonent.getBalance() + increment);
+        return abonent;
     }
 
     @Override
-    public Abonent increaseBalanceByPhoneNumber(Long phoneNumber, double increment) {
-        if(isExistByPhoneNumber(phoneNumber)) {
-            return transactionTemplate.execute((status) -> {
-                try {
-                    Abonent abonent = abonentRep.findByPhoneNumber(phoneNumber).get();
-                    abonent.increaseBalance(increment);
-                    return abonent;
-                } catch (Exception e) {
-                    throw new RuntimeException("Error update abonent with phoneNumber %d. Error message : %s");
-                }
-            });
-        } else {
-            throw new RuntimeException("Abonent with phoneNumber %d is not exist");
-        }
+    public Abonent decreaseBalanceById(UUID abonentId, float decrement) {
+        Abonent abonent = this.readById(abonentId);
+        abonent.setBalance(abonent.getBalance() - decrement);
+        return abonent;
     }
 
     @Override
-    public Abonent decreaseBalanceById(Long abonentId, double decrement) {
-        return this.increaseBalanceById(abonentId, -decrement);
+    public Abonent increaseBalanceByPhoneNumber(Long phoneNumber, float increment) {
+        Abonent abonent = this.readByPhoneNumber(phoneNumber);
+        abonent.setBalance(abonent.getBalance() + increment);
+        return abonent;
     }
 
     @Override
-    public Abonent decreaseBalanceByPhonenUmber(Long phoneNumber, double decrement) {
-        return this.increaseBalanceByPhoneNumber(phoneNumber, -decrement);
+    public Abonent decreaseBalanceByPhonenUmber(Long phoneNumber, float decrement) {
+        Abonent abonent = this.readByPhoneNumber(phoneNumber);
+        abonent.setBalance(abonent.getBalance() - decrement);
+        return abonent;
     }
 
     @Override
-    public List<Abonent> getAllNotBannedAbonents() {
-        return abonentRep.findAllNotBlockedAbonents();
+    public List<Abonent> readAllNotBannedAbonents() {
+        CriteriaBuilder cb = this.entityManager.getCriteriaBuilder();
+        CriteriaQuery<Abonent> cq = cb.createQuery(Abonent.class);
+        Root<Abonent> abonentRoot = cq.from(Abonent.class);
+        cq.select(abonentRoot)
+          .where(cb.isFalse(abonentRoot.get("is_blocked")));
+        return this.entityManager.createQuery(cq).getResultList();
+    }
+
+    @Override
+    public UserDetails loadByPhoneNumber(Long phoneNumber) throws UsernameNotFoundException {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'loadByPhoneNumber'");
     }
 
     @Override
     public boolean authenticateAbonent(Long phoneNumber, String password) {
-        return abonentRep.validByPassword(phoneNumber, password);
-    }
-
-    public UserDetails loadByPhoneNumber(Long phoneNumber) throws UsernameNotFoundException {
-        if(isExistByPhoneNumber(phoneNumber)) {
-            return User.builder()
-                    .username(String.format("+%d", phoneNumber))
-                    .password("nopassword")
-                    .authorities("ABONENT")
-                    .build();
-        }
-        throw new UsernameNotFoundException(String.format("Abonent with number %d not found", phoneNumber));
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'authenticateAbonent'");
     }
 
     @Override
-    public Abonent updateById(Abonent newObject, Long aLong) {
-        return transactionTemplate.execute((status) -> {
-            if (!isExistById(aLong)) {
-                return new Abonent();
-            }
-            try {
-                Abonent updateableAbonent = abonentRep.findById(aLong).get();
-                Abonent ret = updateableAbonent.update(newObject);
-                return  ret;
-            } catch (Exception e) {
-                throw new RuntimeException("Update abonent error");
-            }
-        });
+    public Abonent readAbonentWithPayloadsByPhoneNumber(Long phonenUmber) {
+        return null;
     }
+
 }
