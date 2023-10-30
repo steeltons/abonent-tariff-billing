@@ -3,10 +3,7 @@ package org.jenjetsu.com.brt.logic;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.jenjetsu.com.brt.dto.*;
-import org.jenjetsu.com.brt.entity.Abonent;
-import org.jenjetsu.com.brt.entity.AbonentPayload;
-import org.jenjetsu.com.brt.entity.CallOption;
-import org.jenjetsu.com.brt.entity.Tariff;
+import org.jenjetsu.com.brt.entity.*;
 import org.jenjetsu.com.brt.service.AbonentPayloadService;
 import org.jenjetsu.com.brt.service.AbonentService;
 import org.springframework.http.HttpStatus;
@@ -24,6 +21,12 @@ public class AbonentInformationGetter {
     private final AbonentService abonentService;
     private final AbonentPayloadService abonentPayloadService;
 
+    /**
+     * <h2>getMyInformation</h2>
+     * <p>Fetch tariff (all options), abonent calls and abonent information and return them</p>
+     * @param phoneNumber - abonent number
+     * @return AbonentInformationDTO
+     */
     public AbonentInformationDTO getMyInformation(Long phoneNumber) {
         Abonent abonent = this.abonentService.readAbonentWithPayloadsByPhoneNumber(phoneNumber);
         return AbonentInformationDTO.builder()
@@ -39,6 +42,12 @@ public class AbonentInformationGetter {
                 .build();
     }
 
+    /**
+     * <h2>getMyCalls</h2>
+     * <p>Load abonent calls and return them</p>
+     * @param phoneNumber - abonent phone number
+     * @return List<AbonentPayloadReturnDTO>
+     */
     public List<AbonentPayloadReturnDTO> getMyCalls(Long phoneNumber) {
         List<AbonentPayload> payloadList = this.abonentPayloadService.readByAbonentPhoneNumber(phoneNumber);
         return payloadList.stream()
@@ -51,21 +60,29 @@ public class AbonentInformationGetter {
                 .name(tariff.getName())
                 .baseCost(tariff.getBaseCost())
                 .description(tariff.getDescription())
-                .options(tariff.getCallOptionList()
-                        .stream()
-                        .map(this::convertCallOption)
+                .cards(tariff.getCallOptionCardList().stream()
+                        .map(this::convertCallOptionCard)
                         .toList())
                 .build();
     }
 
+    private CallOptionCardReturnDTO convertCallOptionCard(CallOptionCard card) {
+        return CallOptionCardReturnDTO.builder()
+                .cardId(card.getCallOptionCardId())
+                .inputOption(this.convertCallOption(card.getInputOption()))
+                .outputOption(this.convertCallOption(card.getOutputOption()))
+                .cardCost(card.getCardCost())
+                .sharedBuffer(card.getSharedMinuteBuffer())
+                .cardPriority(card.getCardPriority())
+                .build();
+    }
+
+
+
     private CallOptionReturnDTO convertCallOption(CallOption callOption) {
-        return CallOptionReturnDTO
-                .builder()
-                .callType(callOption.getCallType())
-                .minuteCost(callOption.getCallCost())
-                .minutes(callOption.getCallBuffer())
-                .optionCost(callOption.getCost())
-                .callPriority(callOption.getCallPriority())
+        return CallOptionReturnDTO.builder()
+                .minuteCost(callOption.getMinuteCost())
+                .minuteBuffer(callOption.getMinuteBuffer())
                 .build();
     }
     private AbonentPayloadReturnDTO convertAbonentPayloads(AbonentPayload payload) {

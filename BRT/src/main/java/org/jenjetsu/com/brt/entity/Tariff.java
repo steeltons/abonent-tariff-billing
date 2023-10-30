@@ -40,5 +40,5 @@ public class Tariff {
     private Float baseCost;
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "tariff_id")
-    private List<CallOption> callOptionList;
+    private List<CallOptionCard> callOptionCardList;
 }

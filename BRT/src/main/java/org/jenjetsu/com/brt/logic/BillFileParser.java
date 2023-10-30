@@ -1,60 +1,53 @@
 package org.jenjetsu.com.brt.logic;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jenjetsu.com.core.entity.AbonentBill;
 import org.jenjetsu.com.core.entity.CallBillInformation;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
 import java.io.EOFException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.function.Function;
 
 @Service
 @Slf4j
-public class BillFileParser {
+@RequiredArgsConstructor
+public class BillFileParser implements Function<Resource, List<AbonentBill>> {
 
-    public List<AbonentBill> parseBillFile(Resource billFile) {
-        try(Scanner scanner = new Scanner(billFile.getInputStream())) {
+    private final Function<String, AbonentBill> abonentBillDeserializer;
+    private final Function<String, CallBillInformation> callBillDeserializer;
+
+    /**
+     * <h2>parseBillFile</h2>
+     * <p>Parse input bill file into billed abonents</p>
+     * @param billFile
+     * @return List<AbonentBill>
+     */
+    public List<AbonentBill> apply(Resource billFile) {
+        try(BufferedReader reader = new BufferedReader(new InputStreamReader(billFile.getInputStream()))) {
+            String line;
             List<AbonentBill> abonentBillList = new ArrayList<>();
-            while (scanner.hasNext()) {
-                Long phoneNumber = parsePhoneNumber(scanner);
-                List<CallBillInformation> callBills = parseCallBills(scanner);
-                Double totalSum = parseTotalSum(scanner);
-                abonentBillList.add(new AbonentBill(phoneNumber, callBills, totalSum));
+            while ((line = reader.readLine()) != null) {
+                AbonentBill abonentBill = this.abonentBillDeserializer.apply(line);
+                List<CallBillInformation> callBillList = new ArrayList<>();
+                while ((line = reader.readLine()) != null && line.startsWith("-")) {
+                    CallBillInformation callBill = this.callBillDeserializer.apply(line);
+                    callBillList.add(callBill);
+                }
+                abonentBill.setCallBillInformationList(callBillList);
+                abonentBillList.add(abonentBill);
             }
             return abonentBillList;
         } catch (Exception e) {
-            log.error("Error parsing bill file {}.", billFile.getFilename());
-            throw new RuntimeException("Error parsing bill file.", e);
+            throw new RuntimeException("Impossible to parse bil file");
         }
-    }
-
-    private Long parsePhoneNumber(Scanner scanner) throws EOFException, NumberFormatException{
-        if(!scanner.hasNext()) throw new EOFException("Bill file EOF, but expected phone number");
-        return Long.parseLong(scanner.nextLine());
-    }
-
-    private List<CallBillInformation> parseCallBills(Scanner scanner) throws ParseException, EOFException {
-        List<CallBillInformation> callBillInformationList = new ArrayList<>();
-        String scannerLine = scanner.nextLine();
-        while (!scannerLine.startsWith("===")) {
-            CallBillInformation billInformation = CallBillInformation.parseFromLine(scannerLine);
-            callBillInformationList.add(billInformation);
-            if(!scanner.hasNext()) {
-                throw new EOFException("Bill file EOF, but there is no total sum.");
-            }
-            scannerLine = scanner.nextLine();
-        }
-        return callBillInformationList;
-    }
-
-    private Double parseTotalSum(Scanner scanner) throws EOFException{
-        if(!scanner.hasNext()) {
-            throw new EOFException("Bill file EOF, but there is no total sum.");
-        }
-        return Double.parseDouble(scanner.nextLine().split(" ")[2]);
     }
 }

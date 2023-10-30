@@ -12,21 +12,27 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.function.Function;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class HrsListener {
 
-    private final BillFileParser billFileParser;
+    private final Function<Resource, List<AbonentBill>> billFileParser;
     private final MinioService minioService;
     private final AbonentBiller abonentBiller;
     private final BillingProcess billingProcess;
 
+    /**
+     * <h2>handleBillFile</h2>
+     * <p>Get bill filename from HRS and finally start billing abonents in database</p>
+     * @param filename - bill filename
+     */
     @RabbitListener(queues = "hrs-queue-listener")
     public void handleBillFile(String filename) {
         Resource billFile = minioService.getFile(filename, "trash");
-        List<AbonentBill> abonentBillList = billFileParser.parseBillFile(billFile);
+        List<AbonentBill> abonentBillList = billFileParser.apply(billFile);
 //        abonentBiller.billAbonents(abonentBillList);
         log.info("End billing abonents, call response");
         billingProcess.send(abonentBillList);
