@@ -1,8 +1,6 @@
 package org.jenjetsu.com.core.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -10,9 +8,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-@Data
+@Getter @Setter @ToString
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class CallInformation {
 
     private byte callTypeCode;

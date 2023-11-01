@@ -1,0 +1,21 @@
+server:
+  port: ${SERVER_PORT}
+
+spring:
+  application:
+    name: ${SPRING_APPLICATION_NAME}
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: ${CONFIG_SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH-LOCATION}
+  profiles:
+    default: ${CONFIG_SPRING_PROFILES_DEFAULT}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE}
+
+encrypt:
+  key: ${ENCRYPT_KEY}

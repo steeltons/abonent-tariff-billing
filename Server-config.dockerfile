@@ -1,12 +1,18 @@
-FROM maven:3.8.4-openjdk-17-slim AS builder
-WORKDIR /app
-COPY ./pom.xml /app/
-COPY ./jenjetsu-config /app/jenjetsu-config/
-RUN mv -f /app/jenjetsu-config/src/main/resources/application-dep.yml /app/jenjetsu-config/src/main/resources/application.yml
-RUN mvn -f /app/jenjetsu-config/pom.xml clean package -Dmaven.test.skip=true
+FROM openjdk:17-slim AS build
+COPY ./jenjetsu-config/target/*.jar app.jar
+RUN mkdir -p app/extract && (cd app/extract; jar -xf /app.jar)
+RUN rm app/extract/BOOT-INF/classes/bootstrap.yml
+RUN mv app/extract/BOOT-INF/classes/bootstrap-prod.yml app/extract/BOOT-INF/classes/bootstrap.yml
 
-FROM eclipse-temurin:17-jre-alpine
-WORKDIR /app
-COPY --from=builder /app/jenjetsu-config/target/*.jar /app/jenjetsu-config/*.jar
+FROM openjdk:17-slim
+VOLUME /tmp
+ARG DEPENDENCY=/app/extract
+COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
+COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
+COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
+RUN apt-get -y update
+RUN apt-get -y install curl
+RUN apt-get -y install jq
+RUN apt-get -y install nano
 EXPOSE 8888
-ENTRYPOINT ["java",  "-jar", "/app/jenjetsu-config/*.jar"]
+ENTRYPOINT ["java",  "-cp", "app:app/lib/*", "org.jenjetsu.com.server.config.JenjetsuServerConfigMain"]

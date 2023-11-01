@@ -6,13 +6,15 @@ management:
     web:
       exposure:
         include:
-          include:
-            - info
-            - health
+          - health
+          - info
+          - shutdown
   endpoint:
     info:
       enabled: true
     health:
+      enabled: true
+    shutdown:
       enabled: true
 
 spring:

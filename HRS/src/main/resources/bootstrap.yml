@@ -2,8 +2,13 @@ server:
   port: 8102
 
 spring:
+  profiles:
+    active: dev
+  application:
+    name: HRS
   config:
     import: "configserver:"
   cloud:
     config:
+      uri: http://localhost:8888
       name: HRS,rabbitmq,minio,eureka-client

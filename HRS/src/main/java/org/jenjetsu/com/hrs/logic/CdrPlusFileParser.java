@@ -1,118 +1,115 @@
 package org.jenjetsu.com.hrs.logic;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jenjetsu.com.hrs.entity.AbonentInformation;
-import org.jenjetsu.com.hrs.entity.HrsCallInformation;
-import org.jenjetsu.com.hrs.entity.Tariff;
-import org.jenjetsu.com.hrs.entity.TariffOption;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
+import org.jenjetsu.com.hrs.model.*;
+import org.jenjetsu.com.hrs.model.implementation.TariffImpl;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
-import java.io.EOFException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.io.*;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
-public class CdrPlusFileParser {
+public class CdrPlusFileParser implements Function<Resource, List<AbonentHrs>> {
 
-    private final CacheManager cacheManager;
+    private final Function<String, CallHrs> callDeserializer;
+    private final Function<String, TariffHrs> tariffDeserializer;
+    private final Function<String, CallOptionHrs> callOptionDeserializer;
+    private final Function<String, AbonentHrs> abonentDeserializer;
+    private final Function<String, CallOptionCardHrs> cardDeserializer;
 
-    public List<AbonentInformation> parseCdrPlusFile(Resource cdrPlusFile) {
-        List<AbonentInformation> abonentInformationList = new ArrayList<>();
-        cacheManager.getCache("tariff-cache").clear();
-        try(Scanner scanner = new Scanner(cdrPlusFile.getInputStream())) {
-            while (scanner.hasNext()) {
-                AbonentInformation abonentInformation = new AbonentInformation();
-                abonentInformation.setPhoneNumber(parsePhoneNumber(scanner));
-                abonentInformation.setTariff(parseTariff(scanner));
-                abonentInformation.setCallInformations(parseCallInformations(scanner));
-                abonentInformationList.add(abonentInformation);
-            }
-            return abonentInformationList;
-        } catch (Exception e) {
-            log.error("Impossible to parse cdr plus {} file.", cdrPlusFile.getFilename());
-            throw new RuntimeException("Impossible to parse file", e);
-        }
+    /**
+     * <h2>parseCdrPlusFile</h2>
+     * <p>Parse cdr plus file into list of AbonentHrs</p>
+     * @param cdrPlusFile cdr plus file
+     * @return List<AbonentHrs> - parsed input abonents
+     */
+    @Override
+    public List<AbonentHrs> apply(Resource cdrPlusFile) {
+       try(BufferedReader reader = new BufferedReader(new InputStreamReader(cdrPlusFile.getInputStream()))) {
+           List<CallOptionHrs> callOptionList = this.readCallOptionsFromFile(reader);
+           Map<Long, CallOptionHrs> callOptionMap = callOptionList.stream()
+                   .collect(Collectors.toMap(CallOptionHrs::getCallOptionId, Function.identity()));
+
+           List<TariffHrs> tariffList = this.readTariffsFromFile(reader, callOptionMap);
+           Map<UUID, TariffHrs> tariffMap = tariffList.stream()
+                   .collect(Collectors.toMap(TariffHrs::getTariffId, Function.identity()));
+
+           List<AbonentHrs> abonentList = this.readAbonentsFromFile(reader, tariffMap);
+           return abonentList;
+       } catch (Exception e) {
+           log.error("Impossible to parse cdr.plus file");
+           throw new RuntimeException(e);
+       }
     }
 
-    private Long parsePhoneNumber(Scanner scanner) throws EOFException {
-        if(!scanner.hasNext()) {
-            throw new EOFException("Cdr plus file EOF, but expected phone number.");
+    private List<TariffHrs> readTariffsFromFile(BufferedReader reader,
+                                                Map<Long, CallOptionHrs> callOptionMap) throws IOException {
+        String line;
+        List<TariffHrs> list = new ArrayList<>();
+        while (!(line = reader.readLine()).contains("END OF TARIFFS")) {
+            TariffHrs tariff = tariffDeserializer.apply(line);
+            List<CallOptionCardHrs> cardList = this.readCallOptionCardsFromFile(reader, callOptionMap)
+                    .stream()
+                    .sorted((c1, c2) -> c2.getCardPriority().compareTo(c1.getCardPriority()))
+                    .toList();
+            tariff.setCallOptionCardList(cardList);
+            list.add(tariff);
         }
-        return Long.parseLong(scanner.nextLine());
+        return list;
     }
 
-    private Tariff parseTariff(Scanner scanner) throws EOFException{
-        if(!scanner.hasNext()) {
-            throw new EOFException("Cdr plus file EOF, but expected tariff.");
+    private List<CallOptionHrs> readCallOptionsFromFile(BufferedReader reader) throws IOException {
+        String line;
+        List<CallOptionHrs> list = new ArrayList<>();
+        while (!(line = reader.readLine()).isEmpty()) {
+            list.add(this.callOptionDeserializer.apply(line));
         }
-        Cache tariffCahce = cacheManager.getCache("tariff-cache");
-        String[] words = scanner.nextLine().split(" ");
-        Integer tariffId = Integer.parseInt(words[0]);
-        Tariff tariff = null;
-        if(tariffCahce != null && tariffCahce.get(tariffId) != null) {
-            tariff = tariffCahce.get(tariffId, Tariff.class);
-            while (!scanner.nextLine().startsWith("===")) {}
-        } else {
-            tariff = new Tariff();
-            tariff.setTariffId(tariffId);
-            tariff.setBasePrice(Double.parseDouble(words[1]));
-            tariff.setRegionCode(Long.parseLong(words[2]));
-            tariff.setTariffOptionList(parseTariffOptions(scanner));
-            if(tariffCahce != null) {
-                tariffCahce.put(tariffId, tariff);
-            }
-        }
-        return tariff;
+        return list;
     }
 
-    private List<TariffOption> parseTariffOptions(Scanner scanner) throws EOFException{
-        if(!scanner.hasNext()) {
-            throw new EOFException("Cdr plus file EOF, but expected minimum one incoming and one outcoming call options");
+    private List<CallOptionCardHrs> readCallOptionCardsFromFile(BufferedReader reader,
+                                                                Map<Long, CallOptionHrs> callOptionMap) throws IOException {
+        String line;
+        List<CallOptionCardHrs> list = new ArrayList<>();
+        while ((line = reader.readLine()).startsWith("-")) {
+            CallOptionCardHrs callOptionCard = this.cardDeserializer.apply(line);
+            CallOptionHrs inputOption = callOptionMap.get(callOptionCard.getInputOption().getCallOptionId());
+            CallOptionHrs outputOption = callOptionMap.get(callOptionCard.getOutputOption().getCallOptionId());
+            callOptionCard.setInputOption(inputOption);
+            callOptionCard.setOutputOption(outputOption);
+            list.add(callOptionCard);
         }
-        String scannerLine = scanner.nextLine();
-        List<TariffOption> tariffOptions = new ArrayList<>();
-        while (!scannerLine.startsWith("===")) {
-            String[] words = scannerLine.split(" ");
-            TariffOption tariffOption = new TariffOption();
-            tariffOption.setCallType(Byte.parseByte(words[1]));
-            tariffOption.setMinuteCost(Double.parseDouble(words[2]));
-            tariffOption.setOptionBuffer(Long.parseLong(words[3]));
-            tariffOption.setOptionPrice(Double.parseDouble(words[4]));
-            tariffOptions.add(tariffOption);
-            if(!scanner.hasNext()) {
-                throw new EOFException("Cdr plus file EOF, but there is no ======= end. Impossible to understand where is end of options");
-            }
-            scannerLine = scanner.nextLine();
-        }
-        return tariffOptions;
+        return list;
     }
 
-    private List<HrsCallInformation> parseCallInformations(Scanner scanner) throws EOFException, ParseException{
-        if(!scanner.hasNext()) {
-            throw new EOFException("Cdr plus file EOF, but expected call information or =====.");
+    private List<AbonentHrs> readAbonentsFromFile(BufferedReader reader,
+                                                   Map<UUID, TariffHrs> tariffMap) throws IOException {
+        String line;
+        List<AbonentHrs> list = new ArrayList<>();
+        while ((line = reader.readLine()) != null) {
+            AbonentHrs abonent = this.abonentDeserializer.apply(line);
+            List<CallHrs> callList = this.readCallsFromFile(reader);
+            abonent.setCallList(callList);
+            UUID tariffId = abonent.getTariff().getTariffId();
+            abonent.setTariff(tariffMap.get(tariffId));
+            list.add(abonent);
         }
-        String scannerLine = scanner.nextLine();
-        List<HrsCallInformation> callList = new ArrayList<>();
-        while (!scannerLine.startsWith("===") && scanner.hasNext()) {
-            String[] words = scannerLine.split(" ");
-            HrsCallInformation call = new HrsCallInformation();
-            call.setCallType(Byte.parseByte(words[0]));
-            call.setCallTo(Long.parseLong(words[1]));
-            call.setIsSameOperator(Byte.parseByte(words[2]) == 1);
-            DateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
-            call.setStartCallingTime(format.parse(words[3]));
-            call.setEndCallingTime(format.parse(words[4]));
-            callList.add(call);
-            scannerLine = scanner.nextLine();
-        }
-        return callList;
+        return list;
     }
+
+    private List<CallHrs> readCallsFromFile(BufferedReader reader) throws IOException{
+        String line;
+        List<CallHrs> list = new ArrayList<>();
+        while ((line = reader.readLine()) != null && line.contains("-")) {
+            list.add(callDeserializer.apply(line));
+        }
+        return list;
+    }
+
 }
