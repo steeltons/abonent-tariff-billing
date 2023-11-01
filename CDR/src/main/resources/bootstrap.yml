@@ -1,4 +1,11 @@
 spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  profiles:
+    active: dev
+  application:
+    name: CDR
   config:
     import: "configserver:"
   cloud:

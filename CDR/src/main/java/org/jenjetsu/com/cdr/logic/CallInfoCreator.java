@@ -79,7 +79,7 @@ public class CallInfoCreator {
     }
 
     private byte generateRandomCallType() {
-        return (byte) random.nextInt(1, 3);
+        return (byte) random.nextInt(0, 2);
     }
 
     private boolean isCallingToSomeoneInList() {

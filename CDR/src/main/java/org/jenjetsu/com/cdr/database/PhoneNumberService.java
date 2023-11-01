@@ -13,7 +13,7 @@ public class PhoneNumberService {
     private final JdbcTemplate jdbcTemplate;
 
     public Collection<Long> getNotBlockedPhoneNumbers() {
-        return jdbcTemplate.query("SELECT phone_number FROM abonent WHERE NOT BLOCKED",
+        return jdbcTemplate.query("SELECT phone_number FROM abonent WHERE NOT IS_BLOCKED",
                 (rs, i) -> rs.getLong("phone_number"));
     }
 }
