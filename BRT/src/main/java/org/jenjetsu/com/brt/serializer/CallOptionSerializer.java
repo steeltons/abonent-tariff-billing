@@ -31,7 +31,7 @@ public class CallOptionSerializer implements Function<CallOption, String> {
     public String apply(CallOption c) {
         return format("%d %s %d",
                     c.getCallOptionId(),
-                    minuteCostFormat.format(c.getMinuteCost()),
+                    minuteCostFormat.format(c.getMinuteCost().floatValue()),
                     c.getMinuteBuffer()
                 );
     }

@@ -1,5 +1,7 @@
 package org.jenjetsu.com.brt.entity;
 
+import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,8 +39,18 @@ public class Tariff {
     private String description;
     @Column(name = "base_cost", nullable = false, precision = 6, scale = 2)
     @Min(0) @Max(3000)
-    private Float baseCost;
+    private BigDecimal baseCost;
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "tariff_id")
     private List<CallOptionCard> callOptionCardList;
+
+    @Override
+    public boolean equals(Object o) {
+        if(this == o) return true;
+        if(!(o instanceof Tariff)) return false;
+        Tariff t = (Tariff) o;
+        if(t.tariffId != null) return t.tariffId.equals(this.tariffId);
+        if(t.baseCost != null) return t.baseCost.equals(this.baseCost);
+        return true;
+    }
 }

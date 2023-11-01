@@ -1,6 +1,7 @@
 package org.jenjetsu.com.brt.logic;
 
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.DateFormat;
@@ -29,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AbonentBiller {
 
-    private final Double MIN_BALANCE_TO_BLOCK = -300.0;
+    private final BigDecimal MIN_BALANCE_TO_BLOCK = BigDecimal.valueOf(-300.0);
 
     private final AbonentService abonentService;
     private final AbonentPayloadService payloadService;
@@ -42,8 +43,9 @@ public class AbonentBiller {
         try {
             for(AbonentBill abonentBill: abonentBillList) {
                 Abonent abonent = this.abonentService.readByPhoneNumber(abonentBill.getPhoneNumber());
-                abonent.setBalance(abonent.getBalance() - abonentBill.getTotalCost().floatValue());
-                if(abonent.getBalance() < MIN_BALANCE_TO_BLOCK) {
+                BigDecimal decrement = BigDecimal.valueOf(abonentBill.getTotalCost().floatValue());
+                abonent.setBalance(abonent.getBalance().subtract(decrement));
+                if(MIN_BALANCE_TO_BLOCK.compareTo(abonent.getBalance()) >= 0) {
                     abonent.setIsBlocked(true);
                     blockedAbonents++;
                 }
@@ -55,7 +57,7 @@ public class AbonentBiller {
                                         .callTo(info.getCallTo())
                                         .startCallingTime(Timestamp.from(info.getStartCallingDate().toInstant()))
                                         .endCallingTime(Timestamp.from(info.getEndCallingDate().toInstant()))
-                                        .cost(info.getCost().floatValue())
+                                        .cost(BigDecimal.valueOf(info.getCost()))
                                         .duration(new Time(info.getDuration()))
                                         .build()
                         )

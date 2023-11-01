@@ -3,6 +3,7 @@ package org.jenjetsu.com.brt.logic;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jenjetsu.com.core.entity.CallInformation;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +16,13 @@ import java.util.function.Function;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class CdrFileParser implements Function<Resource, Map<Long, List<CallInformation>>> {
 
     private final Function<String, CallInformation> callInformationDeserializer;
+
+    public CdrFileParser(@Qualifier("callInformationDeserializer") Function<String, CallInformation> deserializer) {
+        this.callInformationDeserializer = deserializer;
+    }
 
     /**
      * <h2>Parse cdr file to abonent calls</h2>

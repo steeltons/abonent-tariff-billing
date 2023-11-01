@@ -32,7 +32,7 @@ public class AbonentInformationGetter {
         return AbonentInformationDTO.builder()
                 .abonentId(abonent.getAbonentId())
                 .phoneNumber(abonent.getPhoneNumber())
-                .balance(abonent.getBalance())
+                .balance(abonent.getBalance().floatValue())
                 .isBlocked(abonent.getIsBlocked())
                 .tariff(this.convertTariff(abonent.getTariff()))
                 .payloads(abonent.getPayloadList()
@@ -58,7 +58,7 @@ public class AbonentInformationGetter {
     private TariffReturnDTO convertTariff(Tariff tariff) {
         return TariffReturnDTO.builder()
                 .name(tariff.getName())
-                .baseCost(tariff.getBaseCost())
+                .baseCost(tariff.getBaseCost().floatValue())
                 .description(tariff.getDescription())
                 .cards(tariff.getCallOptionCardList().stream()
                         .map(this::convertCallOptionCard)
@@ -71,7 +71,7 @@ public class AbonentInformationGetter {
                 .cardId(card.getCallOptionCardId())
                 .inputOption(this.convertCallOption(card.getInputOption()))
                 .outputOption(this.convertCallOption(card.getOutputOption()))
-                .cardCost(card.getCardCost())
+                .cardCost(card.getCardCost().floatValue())
                 .sharedBuffer(card.getSharedMinuteBuffer())
                 .cardPriority(card.getCardPriority())
                 .build();
@@ -81,7 +81,7 @@ public class AbonentInformationGetter {
 
     private CallOptionReturnDTO convertCallOption(CallOption callOption) {
         return CallOptionReturnDTO.builder()
-                .minuteCost(callOption.getMinuteCost())
+                .minuteCost(callOption.getMinuteCost().floatValue())
                 .minuteBuffer(callOption.getMinuteBuffer())
                 .build();
     }
@@ -90,7 +90,7 @@ public class AbonentInformationGetter {
                 .builder()
                 .callType(payload.getCallType())
                 .callTo(payload.getCallTo())
-                .cost(payload.getCost())
+                .cost(payload.getCost().floatValue())
                 .duration(payload.getDuration())
                 .startCallingTime(payload.getStartCallingTime().toInstant())
                 .endCallingTime(payload.getEndCallingTime().toInstant())

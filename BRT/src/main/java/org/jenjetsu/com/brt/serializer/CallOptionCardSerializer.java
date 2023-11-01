@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.function.Function;
 import static java.lang.String.format;
 
@@ -31,13 +32,15 @@ public class CallOptionCardSerializer implements Function<CallOptionCard, String
      * @return String
      */
     public String apply(CallOptionCard c) {
+        Long inputCallOption = Objects.nonNull(c.getInputOption()) ? c.getInputOption().getCallOptionId() : null;
+        Long outputCallOption = Objects.nonNull(c.getOutputOption()) ? c.getOutputOption().getCallOptionId() : null;
         return format("- %s %d %d %d %d %s",
                     c.getTariff().getTariffId().toString(),
-                    c.getInputOption().getCallOptionId(),
-                    c.getOutputOption().getCallOptionId(),
+                    inputCallOption,
+                    outputCallOption,
                     c.getSharedMinuteBuffer(),
                     c.getCardPriority(),
-                    cardCostFormat.format(c.getCardCost())
+                    cardCostFormat.format(c.getCardCost().floatValue())
                 );
     }
 }

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import lombok.*;
 import org.hibernate.annotations.Check;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import static jakarta.persistence.CascadeType.*;
@@ -23,9 +24,9 @@ import static jakarta.persistence.CascadeType.*;
 @Entity(name = "call_option_card")
 @Table(uniqueConstraints = {
                             @UniqueConstraint(columnNames = {"tariff_id", "input_option_id", "output_option_id"}),
-                            @UniqueConstraint(columnNames = {"tariff_id", "option_priority"})
+                            @UniqueConstraint(columnNames = {"tariff_id", "card_priority"})
                             })
-@Check(constraints = "(option_priority != 0 AND shared_minute_buffer != 0) || (option_priority = 0 AND shared_minute_buffer = 0)")
+@Check(constraints = "(card_priority != 0 AND shared_minute_buffer != 0) OR (card_priority = 0 AND shared_minute_buffer = 0)")
 public class CallOptionCard {
 
     @Id
@@ -48,6 +49,6 @@ public class CallOptionCard {
     @Column(name = "card_priority", nullable = false)
     @Min(0) @Max(10)
     private Byte cardPriority;
-    @Column(name = "card_cost", nullable = false, scale = 4, length = 2)
-    private Float cardCost;
+    @Column(name = "card_cost", nullable = false, precision = 4, scale = 2)
+    private BigDecimal cardCost;
 }

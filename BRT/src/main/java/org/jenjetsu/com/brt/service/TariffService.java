@@ -7,4 +7,5 @@ import java.util.UUID;
 public interface TariffService extends DAOService<Tariff, UUID>{
 
     public Tariff getTariffByAbonentPhoneNumber(Long phoneNumber);
+    public Tariff fetchTariffById(UUID tariffId);
 }

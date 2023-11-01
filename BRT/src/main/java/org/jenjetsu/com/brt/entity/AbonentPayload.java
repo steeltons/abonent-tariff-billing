@@ -4,6 +4,7 @@ package org.jenjetsu.com.brt.entity;
 import static jakarta.persistence.CascadeType.DETACH;
 import static jakarta.persistence.CascadeType.MERGE;
 
+import java.math.BigDecimal;
 import java.sql.Time;
 import java.sql.Timestamp;
 
@@ -39,8 +40,8 @@ public class AbonentPayload {
     private Long callTo;
     @Column(name = "call_type")
     private CallType callType;
-    @Column(name = "cost", nullable = false)
-    private Float cost;
+    @Column(name = "cost", nullable = false, precision = 4, scale = 2)
+    private BigDecimal cost;
     @Column(name = "start_calling_time", nullable = false)
     private Timestamp startCallingTime;
     @Column(name = "end_calling_time", nullable = false)

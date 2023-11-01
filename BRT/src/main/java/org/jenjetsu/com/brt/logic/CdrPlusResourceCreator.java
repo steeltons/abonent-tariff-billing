@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.util.Map.Entry;
@@ -43,7 +45,7 @@ public class CdrPlusResourceCreator implements Function<Map<Long, List<CallInfor
      * - tariff_id_1 input_option_id output_option_id shared_buffer card_priority card_cost<br>
      * ...................................................................<br>
      * - tariff_id_N input_option_id output_option_id shared_buffer card_priority card_cost<br>
-     * ...................................................................<br>
+     * ...................................................................<br><br>
      * END OF TARIFFS<br>
      * phone_number_1 tariff_id<br>
      * - call_type call_to start_calling_time end_calling_time<br>
@@ -63,12 +65,15 @@ public class CdrPlusResourceCreator implements Function<Map<Long, List<CallInfor
                             Tariff tariff = this.tariffService.getTariffByAbonentPhoneNumber(phoneNumber);
                             abonentTariffMap.put(phoneNumber, tariff.getTariffId());
                             return tariff;
-                        }).distinct()
+                        })
+                    .filter(distinctByKey(Tariff::getTariffId))
+                    .map((tariff) -> this.tariffService.fetchTariffById(tariff.getTariffId()))
                     .toList();
             List<CallOption> callOptionList = tariffList.stream()
                     .flatMap((tariff) -> tariff.getCallOptionCardList().stream())
                     .flatMap((card) -> Stream.of(card.getInputOption(), card.getOutputOption()))
-                    .distinct()
+                    .filter(Objects::nonNull)
+                    .filter(distinctByKey(CallOption::getCallOptionId))
                     .toList();
             this.writeCallOption(callOptionList, outputStream);
             this.writeTariffWithCards(tariffList, outputStream);
@@ -84,12 +89,18 @@ public class CdrPlusResourceCreator implements Function<Map<Long, List<CallInfor
         }
     }
 
+    private static <T>Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return t -> seen.add(keyExtractor.apply(t));
+    }
+
     private void writeCallOption(List<CallOption> callOptionList, OutputStream outputStream) throws Exception{
         Iterator<CallOption> iterator = callOptionList.listIterator();
         while (iterator.hasNext()) {
             CallOption callOption = iterator.next();
             outputStream.write((this.callOptionSerializer.apply(callOption) + "\n").getBytes());
         }
+        outputStream.write((byte) '\n');
     }
 
     private void writeTariffWithCards(List<Tariff> tariffList, OutputStream outputStream) throws Exception{
@@ -103,6 +114,7 @@ public class CdrPlusResourceCreator implements Function<Map<Long, List<CallInfor
                 outputStream.write(this.callOptionCardSerializer.apply(card).getBytes());
                 outputStream.write((byte) '\n');
             }
+            outputStream.write((byte) '\n');
         }
         outputStream.write("END OF TARIFFS\n".getBytes());
     }
@@ -125,9 +137,12 @@ public class CdrPlusResourceCreator implements Function<Map<Long, List<CallInfor
             while (callIterator.hasNext()) {
                 CallInformation information = callIterator.next();
                 outputStream.write(this.callInformationSerializer.apply(information).getBytes());
-                if(callIterator.hasNext() || abonentIterator.hasNext()) {
+                if(callIterator.hasNext()) {
                     outputStream.write((byte) '\n');
                 }
+            }
+            if(abonentIterator.hasNext()) {
+                outputStream.write("\n\n".getBytes());
             }
         }
     }

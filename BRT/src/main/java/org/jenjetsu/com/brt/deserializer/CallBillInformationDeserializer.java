@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.function.Function;
 
 @Component
-public class CallBiilInformationDeserializer implements Function<String, CallBillInformation> {
+public class CallBillInformationDeserializer implements Function<String, CallBillInformation> {
 
     private final DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 
@@ -23,6 +23,9 @@ public class CallBiilInformationDeserializer implements Function<String, CallBil
      */
     @SneakyThrows
     public CallBillInformation apply(String s) {
+        if(s.startsWith("-")) {
+            s = s.substring(2);
+        }
         String[] words = s.split(" ");
         return CallBillInformation.builder()
                 .callType(CallType.getByCode(Byte.parseByte(words[0])).getCode())

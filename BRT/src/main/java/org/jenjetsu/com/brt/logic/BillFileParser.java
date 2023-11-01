@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jenjetsu.com.core.entity.AbonentBill;
 import org.jenjetsu.com.core.entity.CallBillInformation;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
@@ -19,11 +20,17 @@ import java.util.function.Function;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class BillFileParser implements Function<Resource, List<AbonentBill>> {
 
     private final Function<String, AbonentBill> abonentBillDeserializer;
     private final Function<String, CallBillInformation> callBillDeserializer;
+
+    public BillFileParser(
+            @Qualifier("abonentBillDeserializer") Function<String, AbonentBill> abonentBillDeserializer,
+            @Qualifier("callBillInformationDeserializer") Function<String, CallBillInformation> callBillDeserializer) {
+        this.abonentBillDeserializer = abonentBillDeserializer;
+        this.callBillDeserializer = callBillDeserializer;
+    }
 
     /**
      * <h2>parseBillFile</h2>

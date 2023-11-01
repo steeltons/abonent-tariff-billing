@@ -1,6 +1,8 @@
 package org.jenjetsu.com.brt.service.implementation;
 
 import static java.lang.String.format;
+
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,8 +34,8 @@ public class AbonentServiceImpl extends AbstractDAORepository<Abonent, UUID>
         CriteriaBuilder cb = this.entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> cq = cb.createQuery(Long.class);
         Root<Abonent> abonentRoot = cq.from(Abonent.class);
-        cq.select(cb.count(abonentRoot.get("abonent_id")))
-          .where(cb.equal(abonentRoot.get("phone_number"), phoneNumber));
+        cq.select(cb.count(abonentRoot.get("abonentId")))
+          .where(cb.equal(abonentRoot.get("phoneNumber"), phoneNumber));
         return this.entityManager.createQuery(cq).getSingleResult() != 0;
     }
 
@@ -46,7 +48,7 @@ public class AbonentServiceImpl extends AbstractDAORepository<Abonent, UUID>
         CriteriaQuery<Abonent> cq = cb.createQuery(Abonent.class);
         Root<Abonent> abonentRoot = cq.from(Abonent.class);
         cq.select(abonentRoot)
-          .where(cb.equal(abonentRoot.get("phone_number"), phoneNumber));
+          .where(cb.equal(abonentRoot.get("phoneNumber"), phoneNumber));
         return this.entityManager.createQuery(cq).getSingleResult();
     }
 
@@ -54,28 +56,32 @@ public class AbonentServiceImpl extends AbstractDAORepository<Abonent, UUID>
     @Transactional
     public Abonent increaseBalanceById(UUID abonentId, float increment) {
         Abonent abonent = this.readById(abonentId);
-        abonent.setBalance(abonent.getBalance() + increment);
+        BigDecimal newBalance = abonent.getBalance().add(BigDecimal.valueOf(increment));
+        abonent.setBalance(newBalance);
         return abonent;
     }
 
     @Override
     public Abonent decreaseBalanceById(UUID abonentId, float decrement) {
         Abonent abonent = this.readById(abonentId);
-        abonent.setBalance(abonent.getBalance() - decrement);
+        BigDecimal newBalance = abonent.getBalance().subtract(BigDecimal.valueOf(decrement));
+        abonent.setBalance(newBalance);
         return abonent;
     }
 
     @Override
     public Abonent increaseBalanceByPhoneNumber(Long phoneNumber, float increment) {
         Abonent abonent = this.readByPhoneNumber(phoneNumber);
-        abonent.setBalance(abonent.getBalance() + increment);
+        BigDecimal newBalance = abonent.getBalance().add(BigDecimal.valueOf(increment));
+        abonent.setBalance(newBalance);
         return abonent;
     }
 
     @Override
     public Abonent decreaseBalanceByPhonenUmber(Long phoneNumber, float decrement) {
         Abonent abonent = this.readByPhoneNumber(phoneNumber);
-        abonent.setBalance(abonent.getBalance() - decrement);
+        BigDecimal newBalance = abonent.getBalance().subtract(BigDecimal.valueOf(decrement));
+        abonent.setBalance(newBalance);
         return abonent;
     }
 
@@ -85,7 +91,7 @@ public class AbonentServiceImpl extends AbstractDAORepository<Abonent, UUID>
         CriteriaQuery<Abonent> cq = cb.createQuery(Abonent.class);
         Root<Abonent> abonentRoot = cq.from(Abonent.class);
         cq.select(abonentRoot)
-          .where(cb.isFalse(abonentRoot.get("is_blocked")));
+          .where(cb.isFalse(abonentRoot.get("isBlocked")));
         return this.entityManager.createQuery(cq).getResultList();
     }
 

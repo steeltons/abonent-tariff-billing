@@ -1,11 +1,15 @@
-server:
-  port: 8080
-
 spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+  profiles:
+    active: dev
   application:
     name: BRT
   config:
     import: "configserver:"
   cloud:
     config:
+      uri: http://localhost:8888
       name: BRT,database,minio,rabbitmq,eureka-client

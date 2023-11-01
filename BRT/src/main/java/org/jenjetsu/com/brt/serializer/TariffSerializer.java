@@ -29,7 +29,7 @@ public class TariffSerializer implements Function<Tariff, String> {
     public String apply(Tariff t) {
         return format("%s %s",
                     t.getTariffId().toString(),
-                    baseCostFormat.format(t.getBaseCost())
+                    baseCostFormat.format(t.getBaseCost().floatValue())
                 );
     }
 }

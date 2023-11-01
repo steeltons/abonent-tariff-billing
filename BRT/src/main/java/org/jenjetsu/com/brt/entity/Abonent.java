@@ -3,6 +3,7 @@ package org.jenjetsu.com.brt.entity;
 import static jakarta.persistence.CascadeType.DETACH;
 import static jakarta.persistence.CascadeType.MERGE;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,10 +39,10 @@ public class Abonent {
     private Long phoneNumber;
     @Column(
             name = "balance", nullable = false, 
-            precision = 6, length = 2, columnDefinition = "NUMERIC(6,2) DEFAULT 0.0"
+            precision = 6, scale = 2, columnDefinition = "NUMERIC(6,2) DEFAULT 0.0"
            )
     @Max(100000)
-    private Float balance;
+    private BigDecimal balance;
     @Column(name = "is_blocked", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean isBlocked;
     @ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = {MERGE, DETACH})

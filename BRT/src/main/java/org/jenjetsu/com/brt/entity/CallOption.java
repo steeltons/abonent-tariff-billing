@@ -20,6 +20,8 @@ import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
+import java.math.BigDecimal;
+
 /**
  * Simple call option
  *
@@ -35,8 +37,18 @@ public class CallOption {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long callOptionId;
-    @Column(name = "minute_cost", nullable = false, scale = 4, length = 2)
-    private Float minuteCost;
+    @Column(name = "minute_cost", nullable = false, precision = 4, scale = 2)
+    private BigDecimal minuteCost;
     @Column(name = "minute_buffer", nullable = false, columnDefinition = "INT2 DEFAULT 0")
     private Short minuteBuffer;
+
+    public boolean equals(Object o) {
+        if(this == o) return true;
+        if(!(o instanceof CallOption)) return false;
+        CallOption c = (CallOption) o;
+        if(c.callOptionId != null) return c.getCallOptionId().equals(this.callOptionId);
+        if(c.minuteCost != null) return c.minuteCost.equals(this.minuteCost);
+        if(c.minuteBuffer != null) return c.minuteBuffer.equals(this.minuteBuffer);
+        return false;
+    }
 }

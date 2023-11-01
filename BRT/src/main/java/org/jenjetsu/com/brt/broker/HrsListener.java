@@ -33,7 +33,7 @@ public class HrsListener {
     public void handleBillFile(String filename) {
         Resource billFile = minioService.getFile(filename, "trash");
         List<AbonentBill> abonentBillList = billFileParser.apply(billFile);
-//        abonentBiller.billAbonents(abonentBillList);
+        abonentBiller.billAbonents(abonentBillList);
         log.info("End billing abonents, call response");
         billingProcess.send(abonentBillList);
     }

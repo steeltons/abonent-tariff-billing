@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @AllArgsConstructor
@@ -27,7 +28,7 @@ public class AbonentController {
         this.abonentService
                 .create(Abonent.builder()
                 .phoneNumber(dto.phoneNumber())
-                .balance(dto.balance())
+                .balance(BigDecimal.valueOf(dto.balance()))
                 .isBlocked(false)
                 .tariff(Tariff.builder().tariffId(dto.tariffId()).build())
                 .build());
@@ -51,8 +52,8 @@ public class AbonentController {
     @PostMapping("/change-balance")
     public ResponseEntity<?> changeBalance(@RequestBody ChangeBalanceDTO balanceDto) {
         Abonent abonent = this.abonentService.readByPhoneNumber(balanceDto.phoneNumber());
-        ChangeBalanceDTO returnDto = new ChangeBalanceDTO(balanceDto.phoneNumber(), balanceDto.sum(), abonent.getBalance());
-        abonent.setBalance(balanceDto.newBalance());
+        ChangeBalanceDTO returnDto = new ChangeBalanceDTO(balanceDto.phoneNumber(), balanceDto.sum(), abonent.getBalance().floatValue());
+        abonent.setBalance(BigDecimal.valueOf(balanceDto.newBalance()));
         this.abonentService.update(abonent);
         return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON).body(returnDto);
     }

@@ -1,9 +1,11 @@
 package org.jenjetsu.com.brt.deserializer;
 
 import org.jenjetsu.com.core.entity.AbonentBill;
+import org.springframework.stereotype.Component;
 
 import java.util.function.Function;
 
+@Component
 public class AbonentBillDeserializer implements Function<String, AbonentBill> {
 
     /**
