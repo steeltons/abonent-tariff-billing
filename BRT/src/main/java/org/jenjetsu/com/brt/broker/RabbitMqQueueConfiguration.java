@@ -16,4 +16,8 @@ public class RabbitMqQueueConfiguration {
     public Queue hrsQueueListener() {
         return new Queue("hrs-queue-listener");
     }
+
+    @Bean Queue billingExceptionQueue() {
+        return new Queue("brt-billing-exception-queue");
+    }
 }

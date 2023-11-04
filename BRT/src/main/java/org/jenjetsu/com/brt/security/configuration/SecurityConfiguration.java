@@ -41,6 +41,7 @@ public class SecurityConfiguration {
                                 .requestMatchers("/api/v1/abonent/create").hasRole("ADMIN")
                                 .requestMatchers("/api/v1/abonent/start-billing").hasRole("ADMIN")
                                 .requestMatchers("/api/v1/abonent/get-not-blocked").hasAnyRole("ADMIN")
+                                .requestMatchers("/api/v1/billing/**").hasAnyRole("ADMIN")
                                 .anyRequest().hasAnyRole("ADMIN", "ABONENT"))
                 .build();
     }
