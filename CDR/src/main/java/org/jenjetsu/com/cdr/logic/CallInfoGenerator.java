@@ -9,31 +9,25 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @Service
 @AllArgsConstructor
 @Slf4j
-public class CallInfoGenerator {
+public class CallInfoGenerator implements Supplier<Collection<CallInformation>> {
 
     private final CallInfoCreator callsInfoCreator;
-    private final CdrFileResourceGenerator resourceGenerator;
     private final PhoneNumberService phoneNumberService;
 
     /**
-     * <h2>Generate call information</h2>
-     * Generate call information from phone numbers that exists in database
+     * <h2>generateCallInformation</h2>
+     * <p>Generate call information from phone numbers that exists in database</p>
      * @return cdr file as resource
      */
-    public Resource generateCallInformation() {
-        try {
-            log.info("Start generate CDR file.");
-            Collection<Long> phoneNumbers = phoneNumberService.getNotBlockedPhoneNumbers();
-            Collection<CallInformation> calls = callsInfoCreator.generateCollectionOfCalls(phoneNumbers);
-            Resource cdrFile = resourceGenerator.generateCdrResourceFromCalls(calls);
-            log.info("End generate CDR file");
-            return cdrFile;
-        } catch (Exception e) {
-            throw new RuntimeException("Impossible to generate call information", e);
-        }
+    @Override
+    public Collection<CallInformation> get() {
+        Collection<Long> phoneNumbers = phoneNumberService.getNotBlockedPhoneNumbers();
+        return callsInfoCreator.generateCollectionOfCalls(phoneNumbers);
     }
 }

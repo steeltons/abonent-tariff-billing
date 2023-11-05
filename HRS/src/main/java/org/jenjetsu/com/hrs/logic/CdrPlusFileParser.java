@@ -43,8 +43,8 @@ public class CdrPlusFileParser implements Function<Resource, List<AbonentHrs>> {
            List<AbonentHrs> abonentList = this.readAbonentsFromFile(reader, tariffMap);
            return abonentList;
        } catch (Exception e) {
-           log.error("Impossible to parse cdr.plus file");
-           throw new RuntimeException(e);
+            String message = "Imossible to parse cdrPlus file. Error message: " + e.getMessage();
+           throw new RuntimeException(message);
        }
     }
 

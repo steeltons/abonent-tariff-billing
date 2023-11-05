@@ -10,6 +10,9 @@ import org.jenjetsu.com.core.entity.CallInformation;
 import org.jenjetsu.com.cdr.logic.CallInfoCollector;
 import org.jenjetsu.com.cdr.logic.CallInfoCreator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -17,8 +20,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Supplier;
 
-@Component
+@Configuration
 @Slf4j
 @AllArgsConstructor
 @ConditionalOnProperty(
@@ -27,18 +31,23 @@ import java.util.Random;
 )
 public class CallReceiverTask {
 
-    private final CallInfoCollector callInfoCollector;
     private final CallInfoCreator callsInfoCreator;
     private volatile List<Long> phoneNumbersDatabase = new ArrayList<>();
     private BrtListener commandListener;
     private final PhoneNumberService phoneNumberService;
 
+    @Bean("callInfoCollector")
+    @Scope("singleton")
+    public Supplier<Collection<CallInformation>> callInfoCollector() {
+        return new CallInfoCollector();
+    }
+
     @Scheduled(initialDelay = 1000l, fixedRate = 20000l)
-    public void generateRandomCalls() {
+    public void generateRandomCalls(CallInfoCollector collector) {
         updateLocalDatabase();
         Collection<CallInformation> calls = callsInfoCreator.generateCollectionOfCalls(getRandomNumbersFromDatabase(8));
-        callInfoCollector.addNewCalls(calls);
-        if(callInfoCollector.getAllCalls().size() > 1000) {
+        collector.addNewCalls(calls);
+        if(collector.getAllCalls().size() > 1000) {
             commandListener.commandListener("collect-and-send");
         }
     }

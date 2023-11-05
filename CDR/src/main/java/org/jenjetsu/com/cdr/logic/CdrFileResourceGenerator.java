@@ -1,43 +1,57 @@
 package org.jenjetsu.com.cdr.logic;
 
-import org.jenjetsu.com.core.entity.CallInformation;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
+import static java.lang.String.format;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.UUID;
+import java.util.function.Function;
+
+import org.jenjetsu.com.core.entity.ByteArrayResourceWrapper;
+import org.jenjetsu.com.core.entity.CallInformation;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
-public class CdrFileResourceGenerator {
+@RequiredArgsConstructor
+public class CdrFileResourceGenerator implements Function<Collection<CallInformation>, Resource>{
+
+    private final Function<CallInformation, String> callSerializer;
 
     /**
-     * <h2>Create resource from calls</h2>
-     * @param calls - collection of calls
-     * @return resource - cdr byte addy resource
-     */
-    public Resource generateCdrResourceFromCalls(Collection<CallInformation> calls) {
-        try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            Iterator<CallInformation> iter = calls.iterator();
-            while (iter.hasNext()) {
-                String line = iter.next().toString() + ((iter.hasNext()) ? "\n" : "");
-                out.write(line.getBytes(StandardCharsets.UTF_8));
-            }
-            out.close();
-            ByteArrayResource resource = new ByteArrayResource(out.toByteArray()) {
-                private final String filename = UUID.randomUUID().toString() + ".cdr";
-                @Override
-                public String getFilename() {
-                    return filename;
+     * <h2>createCdrResource</h2>
+     * <p>Create cdr file from list of CallInformation</p>
+     * <p>Output example:</p>
+     * <p>
+     * call_type phone_number_1 call_to_N start_calling_time end_calling_time<br>
+     * call_type phone_number_2 call_to_1 start_calling_time end_calling_time<br>
+     * call_type phone_number_1 call_to_2 start_calling_time end_calling_time<br>
+     * ..................................................................<br>
+     * call_type phone_number_N call_to_1 start_calling_time end_calling_time
+     * </p>
+     * @param callInformationList list of CallInformation
+     * @return ByteArrayResourceWrapper - cdr file
+     */    
+    public Resource apply(Collection<CallInformation> callInformationList) {
+        try(ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            Iterator<CallInformation> callIterator = callInformationList.iterator();
+            while (callIterator.hasNext()) {
+                CallInformation call = callIterator.next();
+                outputStream.write(this.callSerializer.apply(call).getBytes());
+                if(callIterator.hasNext()) {
+                    outputStream.write((byte) '\n');
                 }
-            };
-            return resource;
+            }
+            return ByteArrayResourceWrapper.cdrResource(outputStream.toByteArray());
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Impossible to create cdr file. Error message: %s", e.getMessage()));
+            String message = format("Impossible to create cdr file. Error message: %s", e.getMessage());
+            throw new RuntimeException(message);
         }
     }
+
 }

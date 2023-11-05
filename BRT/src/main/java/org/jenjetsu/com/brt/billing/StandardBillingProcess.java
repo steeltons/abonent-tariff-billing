@@ -115,7 +115,7 @@ public class StandardBillingProcess implements BillingProcess<List<AbonentBillin
     @Override
     public synchronized BillingProcessInformation getInformation() {
         long secondsToWait = 0;
-        if(this.lastBillingDate != null) {
+        if(!this.isPauseExpired()) {
             Instant endPause = this.lastBillingDate.plus(this.billingPause);
             Instant currentTime = Instant.now();
             secondsToWait = endPause.getEpochSecond() - currentTime.getEpochSecond();
@@ -137,6 +137,7 @@ public class StandardBillingProcess implements BillingProcess<List<AbonentBillin
     }
 
     private boolean isPauseExpired() {
-        return this.lastBillingDate == null || this.lastBillingDate.plus(this.billingPause).isBefore(Instant.now());
+        return this.lastBillingDate == null || this.lastBillingDate.plus(this.billingPause).isBefore(Instant.now())
+                || this.thrownException != null;
     }
 }
