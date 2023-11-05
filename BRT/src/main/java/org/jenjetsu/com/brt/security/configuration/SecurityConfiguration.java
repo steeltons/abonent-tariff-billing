@@ -4,6 +4,7 @@ import org.jenjetsu.com.brt.security.provider.AdminAuthenticationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -41,6 +42,8 @@ public class SecurityConfiguration {
                                 .requestMatchers("/api/v1/abonent/create").hasRole("ADMIN")
                                 .requestMatchers("/api/v1/abonent/start-billing").hasRole("ADMIN")
                                 .requestMatchers("/api/v1/abonent/get-not-blocked").hasAnyRole("ADMIN")
+                                .requestMatchers(HttpMethod.GET,"/actuator/health").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/actuator/info").permitAll()
                                 .anyRequest().hasAnyRole("ADMIN", "ABONENT"))
                 .build();
     }

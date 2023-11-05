@@ -1,6 +1,8 @@
+server:
+  port: 8000
+
 spring:
   application:
-    name: jenjetsu-cdr
     enable-auto-collect: false
 
 phone-number-generator:

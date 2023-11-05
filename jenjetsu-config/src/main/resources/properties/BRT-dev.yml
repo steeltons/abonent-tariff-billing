@@ -1,7 +1,20 @@
 server:
   port: 8200
 
+jwt:
+  access-token-key: '{"kty":"oct","k":"hi7S5RX5ZRZooHA0RKGctZ-KtR9FoESgCnH-3BNg5XI"}'
+  access-token-minutes: 15
+  refresh-token-key: '{"kty":"oct","k":"956PBFst1FguLr5irJD-aQ"}'
+  refresh-token-days: 15
+  jws-algorithm: HS256
+  jwe-algorithm: dir
+  jwe-encryption-method: A128GCM
+
 spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
   application:
     name: BRT
   cloud:

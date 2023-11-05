@@ -1,8 +1,8 @@
 FROM openjdk:17-slim AS build
 COPY ./jenjetsu-eureka-server/target/*.jar app.jar
 RUN mkdir -p app/extract && (cd app/extract; jar -xf /app.jar)
-RUN rm app/extract/BOOT-INF/classes/application.yml
-RUN mv app/extract/BOOT-INF/classes/application-prod.yml app/extract/BOOT-INF/classes/application.yml
+RUN rm app/extract/BOOT-INF/classes/bootstrap.yml
+RUN mv app/extract/BOOT-INF/classes/bootstrap-prod.yml app/extract/BOOT-INF/classes/bootstrap.yml
 
 FROM openjdk:17-slim
 VOLUME /tmp

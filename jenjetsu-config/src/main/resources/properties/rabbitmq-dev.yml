@@ -1,5 +1,5 @@
 spring:
   rabbitmq:
-    host: rabbitmq
+    host: localhost
     username: '{cipher}dfd09879e1c4b193b26b28a5417a89c62dcef3566e4d5352749b748f31304bd9'
     password: '{cipher}72fff51d155fba84a24c40ddf643eabdd0a6fbe76a2794cd0129b40008bdc50d'
