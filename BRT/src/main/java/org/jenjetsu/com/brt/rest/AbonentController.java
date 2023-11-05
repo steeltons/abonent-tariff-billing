@@ -65,6 +65,7 @@ public class AbonentController {
         return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON).body(dto);
     }
 
+    @Deprecated(forRemoval = true)
     @PatchMapping("/start-billing")
     public ResponseEntity<?> startBilling(BillCommandDto commandDto) {
         if(!commandDto.command().equals("generate") && !commandDto.command().equals("collect-and-send")) {

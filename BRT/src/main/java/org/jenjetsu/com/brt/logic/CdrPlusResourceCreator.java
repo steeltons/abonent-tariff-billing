@@ -37,7 +37,7 @@ public class CdrPlusResourceCreator implements Function<Map<Long, List<CallInfor
      * <h2>createCdrPlusFile</h2>
      * <p>Convert abonent calls to binary file.</p>
      * <p>Output example:</p>
-     * <code>call_option_id_1 minute_cost minute_buffer<br>
+     * <p>call_option_id_1 minute_cost minute_buffer<br>
      * ...................................................................<br>
      * call_option_id_N minute_cost minute_buffer<br>
      * <br>
@@ -53,7 +53,7 @@ public class CdrPlusResourceCreator implements Function<Map<Long, List<CallInfor
      * - call_type call_to start_calling_time end_calling_time<br>
      * ..................................................................<br>
      * phone_number_N tariff_id<br>
-     * ...................................................................</code>
+     * ...................................................................</p>
      * @param abonentCallMap - map, grouped by phone numbers
      * @return ByteArrayOutputResource
      */

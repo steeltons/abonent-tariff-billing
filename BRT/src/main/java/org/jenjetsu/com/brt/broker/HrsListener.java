@@ -2,9 +2,11 @@ package org.jenjetsu.com.brt.broker;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jenjetsu.com.brt.async.BillingProcess;
+import org.jenjetsu.com.brt.billing.BillingProcess;
+import org.jenjetsu.com.brt.billing.BillingStatus;
+import org.jenjetsu.com.brt.dto.AbonentBillingResultDTO;
+import org.jenjetsu.com.brt.exception.BillingException;
 import org.jenjetsu.com.brt.logic.AbonentBiller;
-import org.jenjetsu.com.brt.logic.BillFileParser;
 import org.jenjetsu.com.core.entity.AbonentBill;
 import org.jenjetsu.com.core.service.MinioService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -22,7 +24,8 @@ public class HrsListener {
     private final Function<Resource, List<AbonentBill>> billFileParser;
     private final MinioService minioService;
     private final AbonentBiller abonentBiller;
-    private final BillingProcess billingProcess;
+//    private final BillingProcess billingProcess;
+    private final BillingProcess<List<AbonentBillingResultDTO>> billingProcess;
 
     /**
      * <h2>handleBillFile</h2>
@@ -31,10 +34,15 @@ public class HrsListener {
      */
     @RabbitListener(queues = "hrs-queue-listener")
     public void handleBillFile(String filename) {
-        Resource billFile = minioService.getFile(filename, "trash");
-        List<AbonentBill> abonentBillList = billFileParser.apply(billFile);
-        abonentBiller.billAbonents(abonentBillList);
-        log.info("End billing abonents, call response");
-        billingProcess.send(abonentBillList);
+        try {
+            billingProcess.updateStatus(BillingStatus.BRT_BILLING);
+            Resource billFile = minioService.getFile(filename, "trash");
+            List<AbonentBill> abonentBillList = billFileParser.apply(billFile);
+            List<AbonentBillingResultDTO> result = abonentBiller.billAbonents(abonentBillList);
+            billingProcess.setCurrentData(result);
+            log.info("End billing abonents, call response");
+        } catch (Exception e) {
+            billingProcess.setThrownException(new BillingException(e.getMessage()));
+        }
     }
 }

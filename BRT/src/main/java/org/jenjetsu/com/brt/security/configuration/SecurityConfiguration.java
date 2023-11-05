@@ -44,6 +44,7 @@ public class SecurityConfiguration {
                                 .requestMatchers("/api/v1/abonent/get-not-blocked").hasAnyRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET,"/actuator/health").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/actuator/info").permitAll()
+                                .requestMatchers("/api/v1/billing/**").hasAnyRole("ADMIN")
                                 .anyRequest().hasAnyRole("ADMIN", "ABONENT"))
                 .build();
     }

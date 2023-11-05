@@ -11,5 +11,10 @@ public class RabbitMqQueueConfiguration {
     public Queue commandListenerQueue() {
         return new Queue("command-listener");
     }
+
+    @Bean
+    public Queue brtExceptionQueue() {
+        return new Queue("brt-billing-exception-queue");
+    }
 }
 

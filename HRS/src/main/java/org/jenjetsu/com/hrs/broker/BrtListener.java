@@ -36,11 +36,15 @@ public class BrtListener {
     @SneakyThrows
     @RabbitListener(queues = "brt-queue-listener")
     public void handleCdrPlusFile(String filename) throws IOException{
-        Resource cdrPlusFile = minioService.getFile(filename, "trash");
-        List<AbonentHrs> abonentList = this.cdrPlusFileParser.apply(cdrPlusFile);
-        List<AbonentHrsOut> billedAbonents = this.billingMachine.startBilling(abonentList);
-        Resource billFile = fileCreator.apply(billedAbonents);
-        minioService.putFile(billFile.getFilename(), "trash", billFile.getInputStream());
-        messageSender.sendBillFilenameToBrt(billFile.getFilename());
+        try {
+            Resource cdrPlusFile = minioService.getFile(filename, "trash");
+            List<AbonentHrs> abonentList = this.cdrPlusFileParser.apply(cdrPlusFile);
+            List<AbonentHrsOut> billedAbonents = this.billingMachine.startBilling(abonentList);
+            Resource billFile = fileCreator.apply(billedAbonents);
+            minioService.putFile(billFile.getFilename(), "trash", billFile.getInputStream());
+            messageSender.sendBillFilenameToBrt(billFile.getFilename());    
+        } catch (Exception e) {
+            this.messageSender.sendBillingError(e);
+        }
     }
 }

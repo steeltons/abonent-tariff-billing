@@ -2,7 +2,10 @@ package org.jenjetsu.com.brt.broker;
 
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import org.jenjetsu.com.brt.billing.BillingProcess;
+import org.jenjetsu.com.brt.billing.BillingStatus;
 import org.jenjetsu.com.brt.entity.Abonent;
+import org.jenjetsu.com.brt.exception.BillingException;
 import org.jenjetsu.com.brt.logic.CdrFileParser;
 import org.jenjetsu.com.brt.logic.CdrPlusResourceCreator;
 import org.jenjetsu.com.core.entity.CallInformation;
@@ -25,6 +28,7 @@ public class CdrListener {
     private final Function<Resource, Map<Long, List<CallInformation>>> cdrFileParser;
     private final Function<Map<Long, List<CallInformation>>, Resource> cdrPlusResourceCreator;
     private final HrsMessageSender messageSender;
+    private BillingProcess<?> billingProcess;
 
 
     /**
@@ -35,11 +39,17 @@ public class CdrListener {
     @RabbitListener(queues = "cdr-queue-listener")
     @SneakyThrows
     public void handleCdrFile(String filename){
-        Resource cdrFile = minioService.getFile(filename, "trash");
-        Map<Long, List<CallInformation>> abonentCallMap = cdrFileParser.apply(cdrFile);
-        Resource cdrPlusFile = cdrPlusResourceCreator.apply(abonentCallMap);
-        minioService.putFile(cdrPlusFile.getFilename(), "trash", cdrPlusFile.getInputStream());
-        messageSender.sendFilenameToHrs(cdrPlusFile.getFilename());
+        try {
+            billingProcess.updateStatus(BillingStatus.BRT_PROCESSING);
+            Resource cdrFile = minioService.getFile(filename, "trash");
+            Map<Long, List<CallInformation>> abonentCallMap = cdrFileParser.apply(cdrFile);
+            Resource cdrPlusFile = cdrPlusResourceCreator.apply(abonentCallMap);
+            minioService.putFile(cdrPlusFile.getFilename(), "trash", cdrPlusFile.getInputStream());
+            messageSender.sendFilenameToHrs(cdrPlusFile.getFilename());
+            billingProcess.updateStatus(BillingStatus.HRS_PROCESSING);
+        } catch (Exception e) {
+            billingProcess.setThrownException(new BillingException(e.getMessage()));
+        }
     }
 
 }

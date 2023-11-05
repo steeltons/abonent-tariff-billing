@@ -2,11 +2,8 @@ package org.jenjetsu.com.cdr.logic;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jenjetsu.com.core.entity.CallInformation;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -15,14 +12,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Supplier;
 
-@Service
-@AllArgsConstructor
 @Slf4j
-public class CallInfoCollector {
+public class CallInfoCollector implements Supplier<Collection<CallInformation>> {
 
     private final List<CallInformation> callInformationList = new ArrayList<>();
-    private final CdrFileResourceGenerator resourceGenerator;
 
     public void addNewCalls(Collection<CallInformation> calls) {
         this.callInformationList.addAll(calls);
@@ -41,16 +36,14 @@ public class CallInfoCollector {
     }
 
     /**
-     * <h2>Create cdr file</h2>
-     * Convert all call information in local list to cdr file
+     * <h2>getCollectedCalls</h2>
+     * <p>Copy all calls and return. Also clear inner call storage</p>
      * @return cdr file as resource
      */
-    public Resource createCdrFile() {
-        log.info("Start convert all exist phone calls of size <{}> to cdr file.", callInformationList.size());
-        Resource cdrFile = resourceGenerator.generateCdrResourceFromCalls(callInformationList);
-        callInformationList.clear();
-        log.info("End convert cdr file.");
-        return cdrFile;
+    public Collection<CallInformation> get() {
+        Collection<CallInformation> copyCollection = new ArrayList<>(this.callInformationList);
+        this.callInformationList.clear();
+        return copyCollection;
     }
 
     @PostConstruct

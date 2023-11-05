@@ -1,26 +1,26 @@
 package org.jenjetsu.com.hrs.logic;
 
-import lombok.RequiredArgsConstructor;
-import org.jenjetsu.com.core.entity.AbonentBill;
-import org.jenjetsu.com.core.entity.CallBillInformation;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Function;
+
+import org.jenjetsu.com.core.entity.ByteArrayResourceWrapper;
 import org.jenjetsu.com.hrs.model.AbonentHrsOut;
 import org.jenjetsu.com.hrs.model.TariffedCall;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.function.Function;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class BillFileCreator implements Function<List<AbonentHrsOut>, Resource> {
 
-    private final Function<TariffedCall, String> tariffedCallSerializer;
+    private final Function<TariffedCall, String> callSerializer;
     private final Function<AbonentHrsOut, String> abonentOutSerializer;
 
     /**
@@ -35,7 +35,7 @@ public class BillFileCreator implements Function<List<AbonentHrsOut>, Resource> 
      * phone_number_N total_price<br>
      * .............................................................................</code>
      * @param abonentOutList billed abonents list
-     * @return Resource - bill file
+     * @return ByteArrayResourceWrapper - bill file
      */
     public Resource apply(List<AbonentHrsOut> abonentOutList) {
         try(ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
@@ -43,28 +43,27 @@ public class BillFileCreator implements Function<List<AbonentHrsOut>, Resource> 
             while (abonentIterator.hasNext()) {
                 AbonentHrsOut abonent = abonentIterator.next();
                 outputStream.write((this.abonentOutSerializer.apply(abonent) + "\n").getBytes());
-                Iterator<TariffedCall> callIterator = abonent.getTariffedCallList().iterator();
-                while (callIterator.hasNext()) {
-                    TariffedCall call = callIterator.next();
-                    outputStream.write(this.tariffedCallSerializer.apply(call).getBytes());
-                    if(callIterator.hasNext()) {
-                        outputStream.write((byte) '\n');
-                    }
-                }
+                this.writeTariffedCalls(abonent.getTariffedCallList(), outputStream);
                 if(abonentIterator.hasNext()) {
                     outputStream.write("\n\n".getBytes());
                 }
             }
-            return new ByteArrayResource(outputStream.toByteArray()) {
-                private final String filename = UUID.randomUUID().toString()+".bill";
-                @Override
-                public String getFilename() {
-                    return filename;
-                }
-            };
+            return ByteArrayResourceWrapper.billResource(outputStream.toByteArray());
         } catch (Exception e) {
-            throw new RuntimeException("");
+            String message = "Impossible to create bill file. Error message: " + e.getMessage();
+            throw new RuntimeException(message);
         }
     }
 
+    private void writeTariffedCalls(Collection<TariffedCall> tariffedCallList, 
+                                    OutputStream outputStream) throws IOException{
+        Iterator<TariffedCall> callIterator = tariffedCallList.iterator();
+        while(callIterator.hasNext()) {
+            TariffedCall call = callIterator.next();
+            outputStream.write(this.callSerializer.apply(call).getBytes());
+            if(callIterator.hasNext()) {
+                outputStream.write((byte) '\n');
+            }
+        }
+    }
 }

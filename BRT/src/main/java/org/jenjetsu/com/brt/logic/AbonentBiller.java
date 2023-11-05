@@ -6,15 +6,20 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 
+import org.jenjetsu.com.brt.dto.AbonentBillingResultDTO;
+import org.jenjetsu.com.brt.dto.AbonentPayloadReturnDTO;
 import org.jenjetsu.com.brt.entity.Abonent;
 import org.jenjetsu.com.brt.entity.AbonentPayload;
 import org.jenjetsu.com.brt.entity.enums.CallType;
 import org.jenjetsu.com.brt.service.AbonentPayloadService;
 import org.jenjetsu.com.brt.service.AbonentService;
 import org.jenjetsu.com.core.entity.AbonentBill;
+import org.jenjetsu.com.core.entity.CallBillInformation;
 import org.jenjetsu.com.core.service.MinioService;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -37,13 +42,15 @@ public class AbonentBiller {
     private final MinioService minioService;
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void billAbonents(List<AbonentBill> abonentBillList) {
+    public List<AbonentBillingResultDTO> billAbonents(List<AbonentBill> abonentBillList) {
         log.info("Start billing abonents.");
         long blockedAbonents = 0l;
+        List<AbonentBillingResultDTO> billingResultList = new ArrayList<>();
         try {
             for(AbonentBill abonentBill: abonentBillList) {
                 Abonent abonent = this.abonentService.readByPhoneNumber(abonentBill.getPhoneNumber());
                 BigDecimal decrement = BigDecimal.valueOf(abonentBill.getTotalCost().floatValue());
+                float beforeBalance = abonent.getBalance().floatValue();
                 abonent.setBalance(abonent.getBalance().subtract(decrement));
                 if(MIN_BALANCE_TO_BLOCK.compareTo(abonent.getBalance()) >= 0) {
                     abonent.setIsBlocked(true);
@@ -62,15 +69,38 @@ public class AbonentBiller {
                                         .build()
                         )
                     .forEach(this.payloadService::create);
+                billingResultList.add(this.convertToBillingResult(abonent, beforeBalance, abonentBill.getCallBillInformationList()));
             }
             log.info("End billing abonents");
             Resource resultFile = this.createBillingResultFile(abonentBillList, blockedAbonents);
             minioService.putFile(resultFile.getFilename(), "trash", resultFile.getInputStream());
             log.info("Information of billing in {} file.", resultFile.getFilename());
+            return billingResultList;
         } catch(Exception e) {
             throw new RuntimeException("Error billing abonents.", e);
         }
+    }
 
+    private AbonentBillingResultDTO convertToBillingResult(Abonent abonent,
+                                                           float beforeBalance,
+                                                           List<CallBillInformation> billedCalls) {
+        return AbonentBillingResultDTO.builder()
+                .abonentId(abonent.getAbonentId())
+                .phoneNumber(abonent.getPhoneNumber())
+                .balanceBefore(beforeBalance)
+                .balanceAfter(abonent.getBalance().floatValue())
+                .active(!abonent.getIsBlocked())
+                .billedCalls(billedCalls.stream()
+                        .map((call) -> AbonentPayloadReturnDTO.builder()
+                                .callTo(call.getCallTo())
+                                .cost(call.getCost().floatValue())
+                                .startCallingTime(call.getStartCallingDate().toInstant())
+                                .endCallingTime(call.getEndCallingDate().toInstant())
+                                .callType(CallType.getByCode(call.getCallType()))
+                                .duration(null)
+                                .build())
+                        .toList())
+                .build();
     }
 
 
